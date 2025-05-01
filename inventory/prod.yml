@@ -1,0 +1,6 @@
+all:
+  hosts:
+    openshift-prod:
+      openshift_namespace: svc0041p-status-prod
+      ansible_connection: local
+      inventory_environment: prod

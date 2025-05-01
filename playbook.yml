@@ -1,0 +1,5 @@
+- name: Build & Deploy Status to OpenShift
+  hosts: all
+  gather_facts: no
+  roles:
+    - role: roles/status-openshift

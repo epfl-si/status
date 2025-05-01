@@ -1,0 +1,6 @@
+all:
+  hosts:
+    openshift-test:
+      openshift_namespace: svc0041t-status-test
+      ansible_connection: local
+      inventory_environment: test
