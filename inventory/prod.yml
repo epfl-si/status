@@ -4,3 +4,6 @@ all:
       openshift_namespace: svc0041p-status-prod
       ansible_connection: local
       inventory_environment: prod
+      user_to_run: 1001530029
+      se_linux_options_level: "s0:c39,c24"
+      route_privacy: "public"

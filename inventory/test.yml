@@ -4,3 +4,6 @@ all:
       openshift_namespace: svc0041t-status-test
       ansible_connection: local
       inventory_environment: test
+      user_to_run: 1001290029
+      se_linux_options_level: "s0:c36,c15"
+      route_privacy: "private"
