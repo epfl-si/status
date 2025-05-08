@@ -6271,9 +6271,11 @@
               supplementalGroups: []
               sysctls: []
             initContainers:
+            imagePullSecrets:
+              - name: status-pull-secret
             containers:
               - name: clickhouse
-                image: docker.io/bitnami/clickhouse:25.3.2-debian-12-r3
+                image: "{{ quay_registry }}/clickhouse:25.3.2-debian-12-r3"
                 resources:
                   requests:
                     cpu: 50m
@@ -6641,9 +6643,11 @@
                 
             enableServiceLinks: true
             terminationGracePeriodSeconds: 30
+            imagePullSecrets:
+              - name: status-pull-secret
             containers:
               - name: redis
-                image: docker.io/bitnami/redis:7.2.4-debian-12-r9
+                image: "{{ quay_registry }}/redis:7.2.4-debian-12-r9"
                 resources:
                   requests:
                     cpu: 50m
