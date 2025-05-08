@@ -1,4 +1,8 @@
-_keybase_secrets: "{{ lookup('file', '/keybase/team/epfl_status/secrets.yml') | from_yaml }}"
+_keybase_secrets: 
+  prod: "{{ lookup('file', '/keybase/team/epfl_status/secrets-prod.yml') | from_yaml }}"
+  test: "{{ lookup('file', '/keybase/team/epfl_status/secrets-test.yml') | from_yaml }}"
+
+keybase_secrets: "{{ _keybase_secrets.get(inventory_environment, None) }}"
 
 status_hostname: >-
   {{ "status.epfl.ch" if inventory_environment == "prod"
@@ -7,7 +11,7 @@ status_hostname: >-
 quay_registry: quay-its.epfl.ch/svc0041
 app_images_tag: release
 
-_pull_robot_secrets: "{{ _keybase_secrets.quay.pull_robot }}"
+_pull_robot_secrets: "{{ keybase_secrets.quay.pull_robot }}"
 _pull_robot_credential: "{{ _pull_robot_secrets.name }}:{{ _pull_robot_secrets.token }}"
 
 pull_secret_config:

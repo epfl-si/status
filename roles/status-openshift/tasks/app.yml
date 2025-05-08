@@ -49,91 +49,91 @@
             - port: 9005
             - port: 9009
 
-- name: NetworkPolicy - Postgres
-  kubernetes.core.k8s:
-    definition:
-      apiVersion: v1
-      kind: NetworkPolicy
-      metadata:
-        name: oneuptime-postgresql
-        namespace: "{{ openshift_namespace }}"
-        labels:
-          app.kubernetes.io/instance: oneuptime
-          app.kubernetes.io/managed-by: Helm
-          app.kubernetes.io/name: postgresql
-          app.kubernetes.io/version: 16.1.0
-          helm.sh/chart: postgresql-14.0.0
-          app.kubernetes.io/component: primary
-      spec:
-        podSelector:
-          matchLabels:
-            app.kubernetes.io/instance: oneuptime
-            app.kubernetes.io/name: postgresql
-            app.kubernetes.io/component: primary
-        policyTypes:
-          - Ingress
-          - Egress
-        egress:
-          - ports:
-            - port: 53
-              protocol: UDP
-            - port: 53
-              protocol: TCP
-          - ports:
-              - port: 5432
-              - port: 5432
-            to:
-              - podSelector:
-                  matchLabels:
-                    app.kubernetes.io/instance: oneuptime
-                    app.kubernetes.io/name: postgresql
-                    app.kubernetes.io/component: read
-        ingress:
-          - ports:
-            - port: 5432
+# - name: NetworkPolicy - Postgres
+#   kubernetes.core.k8s:
+#     definition:
+#       apiVersion: v1
+#       kind: NetworkPolicy
+#       metadata:
+#         name: oneuptime-postgresql
+#         namespace: "{{ openshift_namespace }}"
+#         labels:
+#           app.kubernetes.io/instance: oneuptime
+#           app.kubernetes.io/managed-by: Helm
+#           app.kubernetes.io/name: postgresql
+#           app.kubernetes.io/version: 16.1.0
+#           helm.sh/chart: postgresql-14.0.0
+#           app.kubernetes.io/component: primary
+#       spec:
+#         podSelector:
+#           matchLabels:
+#             app.kubernetes.io/instance: oneuptime
+#             app.kubernetes.io/name: postgresql
+#             app.kubernetes.io/component: primary
+#         policyTypes:
+#           - Ingress
+#           - Egress
+#         egress:
+#           - ports:
+#             - port: 53
+#               protocol: UDP
+#             - port: 53
+#               protocol: TCP
+#           - ports:
+#               - port: 5432
+#               - port: 5432
+#             to:
+#               - podSelector:
+#                   matchLabels:
+#                     app.kubernetes.io/instance: oneuptime
+#                     app.kubernetes.io/name: postgresql
+#                     app.kubernetes.io/component: read
+#         ingress:
+#           - ports:
+#             - port: 5432
             
-- name: NetworkPolicy - Postgres - Read
-  kubernetes.core.k8s:
-    definition:
-      apiVersion: v1
-      kind: NetworkPolicy
-      metadata:
-        name: oneuptime-postgresql-read
-        namespace: "{{ openshift_namespace }}"
-        labels:
-          app.kubernetes.io/instance: oneuptime
-          app.kubernetes.io/managed-by: Helm
-          app.kubernetes.io/name: postgresql
-          app.kubernetes.io/version: 16.1.0
-          helm.sh/chart: postgresql-14.0.0
-          app.kubernetes.io/component: read
-      spec:
-        podSelector:
-          matchLabels:
-            app.kubernetes.io/instance: oneuptime
-            app.kubernetes.io/name: postgresql
-            app.kubernetes.io/component: read
-        policyTypes:
-          - Ingress
-          - Egress
-        egress:
-          - ports:
-            - port: 53
-              protocol: UDP
-            - port: 53
-              protocol: TCP
-          - ports:
-              - port: 5432
-              - port: 5432
-            to:
-              - podSelector:
-                  matchLabels:
-                    app.kubernetes.io/instance: oneuptime
-                    app.kubernetes.io/name: postgresql
-                    app.kubernetes.io/component: primary
-        ingress:
-          - ports:
-            - port: 5432
+# - name: NetworkPolicy - Postgres - Read
+#   kubernetes.core.k8s:
+#     definition:
+#       apiVersion: v1
+#       kind: NetworkPolicy
+#       metadata:
+#         name: oneuptime-postgresql-read
+#         namespace: "{{ openshift_namespace }}"
+#         labels:
+#           app.kubernetes.io/instance: oneuptime
+#           app.kubernetes.io/managed-by: Helm
+#           app.kubernetes.io/name: postgresql
+#           app.kubernetes.io/version: 16.1.0
+#           helm.sh/chart: postgresql-14.0.0
+#           app.kubernetes.io/component: read
+#       spec:
+#         podSelector:
+#           matchLabels:
+#             app.kubernetes.io/instance: oneuptime
+#             app.kubernetes.io/name: postgresql
+#             app.kubernetes.io/component: read
+#         policyTypes:
+#           - Ingress
+#           - Egress
+#         egress:
+#           - ports:
+#             - port: 53
+#               protocol: UDP
+#             - port: 53
+#               protocol: TCP
+#           - ports:
+#               - port: 5432
+#               - port: 5432
+#             to:
+#               - podSelector:
+#                   matchLabels:
+#                     app.kubernetes.io/instance: oneuptime
+#                     app.kubernetes.io/name: postgresql
+#                     app.kubernetes.io/component: primary
+#         ingress:
+#           - ports:
+#             - port: 5432
 
 - name: NetworkPolicy - Redis
   kubernetes.core.k8s:
@@ -207,21 +207,21 @@
           app.kubernetes.io/component: clickhouse
       automountServiceAccountToken: false
 
-- name: ServiceAccount - Postgres
-  kubernetes.core.k8s:
-    definition:
-      apiVersion: v1
-      kind: ServiceAccount
-      metadata:
-        name: oneuptime-postgresql
-        namespace: "{{ openshift_namespace }}"
-        labels:
-          app.kubernetes.io/instance: oneuptime
-          app.kubernetes.io/managed-by: Helm
-          app.kubernetes.io/name: postgresql
-          app.kubernetes.io/version: 16.1.0
-          helm.sh/chart: postgresql-14.0.0
-      automountServiceAccountToken: false
+# - name: ServiceAccount - Postgres
+#   kubernetes.core.k8s:
+#     definition:
+#       apiVersion: v1
+#       kind: ServiceAccount
+#       metadata:
+#         name: oneuptime-postgresql
+#         namespace: "{{ openshift_namespace }}"
+#         labels:
+#           app.kubernetes.io/instance: oneuptime
+#           app.kubernetes.io/managed-by: Helm
+#           app.kubernetes.io/name: postgresql
+#           app.kubernetes.io/version: 16.1.0
+#           helm.sh/chart: postgresql-14.0.0
+#       automountServiceAccountToken: false
 
 - name: ServiceAccount - Redis
   kubernetes.core.k8s:
@@ -279,24 +279,24 @@
       data:
         admin-password: "Y3oyUjB2UEw5Tg=="
 
-- name: Secret - Postgres - Password
-  kubernetes.core.k8s:
-    definition:
-      apiVersion: v1
-      kind: Secret
-      metadata:
-        name: oneuptime-postgresql
-        namespace: "{{ openshift_namespace }}"
-        labels:
-          app.kubernetes.io/instance: oneuptime
-          app.kubernetes.io/managed-by: Helm
-          app.kubernetes.io/name: postgresql
-          app.kubernetes.io/version: 16.1.0
-          helm.sh/chart: postgresql-14.0.0
-      type: Opaque
-      data:
-        postgres-password: "OVZjSkF6N3A0Qg=="
-        password: "Z3Z0Wlg5aVdSZA=="
+# - name: Secret - Postgres - Password
+#   kubernetes.core.k8s:
+#     definition:
+#       apiVersion: v1
+#       kind: Secret
+#       metadata:
+#         name: oneuptime-postgresql
+#         namespace: "{{ openshift_namespace }}"
+#         labels:
+#           app.kubernetes.io/instance: oneuptime
+#           app.kubernetes.io/managed-by: Helm
+#           app.kubernetes.io/name: postgresql
+#           app.kubernetes.io/version: 16.1.0
+#           helm.sh/chart: postgresql-14.0.0
+#       type: Opaque
+#       data:
+#         postgres-password: "OVZjSkF6N3A0Qg=="
+#         password: "Z3Z0Wlg5aVdSZA=="
 
 - name: Secret - Redis - Password
   kubernetes.core.k8s:
@@ -652,63 +652,63 @@
           app.kubernetes.io/component: clickhouse
           app.kubernetes.io/part-of: clickhouse
 
-- name: Service - Postgres - Headless
-  kubernetes.core.k8s:
-    definition:
-      apiVersion: v1
-      kind: Service
-      metadata:
-        name: oneuptime-postgresql-headless
-        namespace: "{{ openshift_namespace }}"
-        labels:
-          app.kubernetes.io/instance: oneuptime
-          app.kubernetes.io/managed-by: Helm
-          app.kubernetes.io/name: postgresql
-          app.kubernetes.io/version: 16.1.0
-          helm.sh/chart: postgresql-14.0.0
-          app.kubernetes.io/component: primary
-        annotations:
-          service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
-      spec:
-        type: ClusterIP
-        clusterIP: None
-        publishNotReadyAddresses: true
-        ports:
-          - name: tcp-postgresql
-            port: 5432
-            targetPort: tcp-postgresql
-        selector:
-          app.kubernetes.io/instance: oneuptime
-          app.kubernetes.io/name: postgresql
-          app.kubernetes.io/component: primary
+# - name: Service - Postgres - Headless
+#   kubernetes.core.k8s:
+#     definition:
+#       apiVersion: v1
+#       kind: Service
+#       metadata:
+#         name: oneuptime-postgresql-headless
+#         namespace: "{{ openshift_namespace }}"
+#         labels:
+#           app.kubernetes.io/instance: oneuptime
+#           app.kubernetes.io/managed-by: Helm
+#           app.kubernetes.io/name: postgresql
+#           app.kubernetes.io/version: 16.1.0
+#           helm.sh/chart: postgresql-14.0.0
+#           app.kubernetes.io/component: primary
+#         annotations:
+#           service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+#       spec:
+#         type: ClusterIP
+#         clusterIP: None
+#         publishNotReadyAddresses: true
+#         ports:
+#           - name: tcp-postgresql
+#             port: 5432
+#             targetPort: tcp-postgresql
+#         selector:
+#           app.kubernetes.io/instance: oneuptime
+#           app.kubernetes.io/name: postgresql
+#           app.kubernetes.io/component: primary
 
-- name: Service - Postgres
-  kubernetes.core.k8s:
-    definition:
-      apiVersion: v1
-      kind: Service
-      metadata:
-        name: oneuptime-postgresql
-        namespace: "{{ openshift_namespace }}"
-        labels:
-          app.kubernetes.io/instance: oneuptime
-          app.kubernetes.io/managed-by: Helm
-          app.kubernetes.io/name: postgresql
-          app.kubernetes.io/version: 16.1.0
-          helm.sh/chart: postgresql-14.0.0
-          app.kubernetes.io/component: primary
-      spec:
-        type: ClusterIP
-        sessionAffinity: None
-        ports:
-          - name: tcp-postgresql
-            port: 5432
-            targetPort: tcp-postgresql
-            nodePort: null
-        selector:
-          app.kubernetes.io/instance: oneuptime
-          app.kubernetes.io/name: postgresql
-          app.kubernetes.io/component: primary
+# - name: Service - Postgres
+#   kubernetes.core.k8s:
+#     definition:
+#       apiVersion: v1
+#       kind: Service
+#       metadata:
+#         name: oneuptime-postgresql
+#         namespace: "{{ openshift_namespace }}"
+#         labels:
+#           app.kubernetes.io/instance: oneuptime
+#           app.kubernetes.io/managed-by: Helm
+#           app.kubernetes.io/name: postgresql
+#           app.kubernetes.io/version: 16.1.0
+#           helm.sh/chart: postgresql-14.0.0
+#           app.kubernetes.io/component: primary
+#       spec:
+#         type: ClusterIP
+#         sessionAffinity: None
+#         ports:
+#           - name: tcp-postgresql
+#             port: 5432
+#             targetPort: tcp-postgresql
+#             nodePort: null
+#         selector:
+#           app.kubernetes.io/instance: oneuptime
+#           app.kubernetes.io/name: postgresql
+#           app.kubernetes.io/component: primary
 
 - name: Service - Redis - Headless
   kubernetes.core.k8s:
@@ -1796,18 +1796,24 @@
                   # Postgres configuration
                   
                   - name: DATABASE_HOST
-                    value: "oneuptime-postgresql.{{ openshift_namespace }}.svc.cluster.local"
+                    valueFrom:
+                      secretKeyRef:
+                          name: postgres-cluster-app
+                          key: host
                   - name: DATABASE_PORT
                     value: '5432'
                   - name: DATABASE_USERNAME
-                    value: postgres
+                    valueFrom:
+                      secretKeyRef:
+                          name: postgres-cluster-app
+                          key: username
                   - name: DATABASE_PASSWORD
                     valueFrom:
                       secretKeyRef:
-                          name: oneuptime-postgresql
-                          key: postgres-password
+                          name: postgres-cluster-app
+                          key: password
                   - name: DATABASE_NAME
-                    value: oneuptimedb
+                    value: oneuptime
                   
                   
                   ## DATABASE SSL BLOCK
@@ -2093,18 +2099,24 @@
                   # Postgres configuration
                   
                   - name: DATABASE_HOST
-                    value: "oneuptime-postgresql.{{ openshift_namespace }}.svc.cluster.local"
+                    valueFrom:
+                      secretKeyRef:
+                          name: postgres-cluster-app
+                          key: host
                   - name: DATABASE_PORT
                     value: '5432'
                   - name: DATABASE_USERNAME
-                    value: postgres
+                    valueFrom:
+                      secretKeyRef:
+                          name: postgres-cluster-app
+                          key: username
                   - name: DATABASE_PASSWORD
                     valueFrom:
                       secretKeyRef:
-                          name: oneuptime-postgresql
-                          key: postgres-password
+                          name: postgres-cluster-app
+                          key: password
                   - name: DATABASE_NAME
-                    value: oneuptimedb
+                    value: oneuptime
                   
                   
                   ## DATABASE SSL BLOCK
@@ -2145,13 +2157,13 @@
                   - name: CALL_DEFAULT_COST_IN_CENTS_PER_MINUTE
                     value: 
                   - name: INTERNAL_SMTP_HOST
-                    value: "oneuptime-haraka.{{ openshift_namespace }}.svc.cluster.local"
+                    value: mail.epfl.ch
                   - name: INTERNAL_SMTP_FROM_NAME
-                    value: 
+                    value: Status
                   - name: INTERNAL_SMTP_EMAIL
-                    value: 
+                    value: "status@epfl.ch"
                   - name: INTERNAL_SMTP_PASSWORD
-                    value: "internal_smtp_password"  
+                    value: "56w6s$ZErzx71" 
                   - name: DISABLE_TELEMETRY
                     value: "false"
                 ports:
@@ -2564,18 +2576,24 @@
                   # Postgres configuration
                   
                   - name: DATABASE_HOST
-                    value: "oneuptime-postgresql.{{ openshift_namespace }}.svc.cluster.local"
+                    valueFrom:
+                      secretKeyRef:
+                          name: postgres-cluster-app
+                          key: host
                   - name: DATABASE_PORT
                     value: '5432'
                   - name: DATABASE_USERNAME
-                    value: postgres
+                    valueFrom:
+                      secretKeyRef:
+                          name: postgres-cluster-app
+                          key: username
                   - name: DATABASE_PASSWORD
                     valueFrom:
                       secretKeyRef:
-                          name: oneuptime-postgresql
-                          key: postgres-password
+                          name: postgres-cluster-app
+                          key: password
                   - name: DATABASE_NAME
-                    value: oneuptimedb
+                    value: oneuptime
                   
                   
                   ## DATABASE SSL BLOCK
@@ -2864,18 +2882,24 @@
                   # Postgres configuration
                   
                   - name: DATABASE_HOST
-                    value: "oneuptime-postgresql.{{ openshift_namespace }}.svc.cluster.local"
+                    valueFrom:
+                      secretKeyRef:
+                          name: postgres-cluster-app
+                          key: host
                   - name: DATABASE_PORT
                     value: '5432'
                   - name: DATABASE_USERNAME
-                    value: postgres
+                    valueFrom:
+                      secretKeyRef:
+                          name: postgres-cluster-app
+                          key: username
                   - name: DATABASE_PASSWORD
                     valueFrom:
                       secretKeyRef:
-                          name: oneuptime-postgresql
-                          key: postgres-password
+                          name: postgres-cluster-app
+                          key: password
                   - name: DATABASE_NAME
-                    value: oneuptimedb
+                    value: oneuptime
                   
                   
                   ## DATABASE SSL BLOCK
@@ -3331,18 +3355,24 @@
                   # Postgres configuration
                   
                   - name: DATABASE_HOST
-                    value: "oneuptime-postgresql.{{ openshift_namespace }}.svc.cluster.local"
+                    valueFrom:
+                      secretKeyRef:
+                          name: postgres-cluster-app
+                          key: host
                   - name: DATABASE_PORT
                     value: '5432'
                   - name: DATABASE_USERNAME
-                    value: postgres
+                    valueFrom:
+                      secretKeyRef:
+                          name: postgres-cluster-app
+                          key: username
                   - name: DATABASE_PASSWORD
                     valueFrom:
                       secretKeyRef:
-                          name: oneuptime-postgresql
-                          key: postgres-password
+                          name: postgres-cluster-app
+                          key: password
                   - name: DATABASE_NAME
-                    value: oneuptimedb
+                    value: oneuptime
                   
                   
                   ## DATABASE SSL BLOCK
@@ -3627,18 +3657,24 @@
                   # Postgres configuration
                   
                   - name: DATABASE_HOST
-                    value: "oneuptime-postgresql.{{ openshift_namespace }}.svc.cluster.local"
+                    valueFrom:
+                      secretKeyRef:
+                          name: postgres-cluster-app
+                          key: host
                   - name: DATABASE_PORT
                     value: '5432'
                   - name: DATABASE_USERNAME
-                    value: postgres
+                    valueFrom:
+                      secretKeyRef:
+                          name: postgres-cluster-app
+                          key: username
                   - name: DATABASE_PASSWORD
                     valueFrom:
                       secretKeyRef:
-                          name: oneuptime-postgresql
-                          key: postgres-password
+                          name: postgres-cluster-app
+                          key: password
                   - name: DATABASE_NAME
-                    value: oneuptimedb
+                    value: oneuptime
                   
                   
                   ## DATABASE SSL BLOCK
@@ -4107,18 +4143,24 @@
                   # Postgres configuration
                   
                   - name: DATABASE_HOST
-                    value: "oneuptime-postgresql.{{ openshift_namespace }}.svc.cluster.local"
+                    valueFrom:
+                      secretKeyRef:
+                          name: postgres-cluster-app
+                          key: host
                   - name: DATABASE_PORT
                     value: '5432'
                   - name: DATABASE_USERNAME
-                    value: postgres
+                    valueFrom:
+                      secretKeyRef:
+                          name: postgres-cluster-app
+                          key: username
                   - name: DATABASE_PASSWORD
                     valueFrom:
                       secretKeyRef:
-                          name: oneuptime-postgresql
-                          key: postgres-password
+                          name: postgres-cluster-app
+                          key: password
                   - name: DATABASE_NAME
-                    value: oneuptimedb
+                    value: oneuptime
                   
                   
                   ## DATABASE SSL BLOCK
@@ -4419,18 +4461,24 @@
                   # Postgres configuration
                   
                   - name: DATABASE_HOST
-                    value: "oneuptime-postgresql.{{ openshift_namespace }}.svc.cluster.local"
+                    valueFrom:
+                      secretKeyRef:
+                          name: postgres-cluster-app
+                          key: host
                   - name: DATABASE_PORT
                     value: '5432'
                   - name: DATABASE_USERNAME
-                    value: postgres
+                    valueFrom:
+                      secretKeyRef:
+                          name: postgres-cluster-app
+                          key: username
                   - name: DATABASE_PASSWORD
                     valueFrom:
                       secretKeyRef:
-                          name: oneuptime-postgresql
-                          key: postgres-password
+                          name: postgres-cluster-app
+                          key: password
                   - name: DATABASE_NAME
-                    value: oneuptimedb
+                    value: oneuptime
                   
                   
                   ## DATABASE SSL BLOCK
@@ -4722,18 +4770,24 @@
                   # Postgres configuration
                   
                   - name: DATABASE_HOST
-                    value: "oneuptime-postgresql.{{ openshift_namespace }}.svc.cluster.local"
+                    valueFrom:
+                      secretKeyRef:
+                          name: postgres-cluster-app
+                          key: host
                   - name: DATABASE_PORT
                     value: '5432'
                   - name: DATABASE_USERNAME
-                    value: postgres
+                    valueFrom:
+                      secretKeyRef:
+                          name: postgres-cluster-app
+                          key: username
                   - name: DATABASE_PASSWORD
                     valueFrom:
                       secretKeyRef:
-                          name: oneuptime-postgresql
-                          key: postgres-password
+                          name: postgres-cluster-app
+                          key: password
                   - name: DATABASE_NAME
-                    value: oneuptimedb
+                    value: oneuptime
                   
                   
                   ## DATABASE SSL BLOCK
@@ -5031,18 +5085,24 @@
                   # Postgres configuration
                   
                   - name: DATABASE_HOST
-                    value: "oneuptime-postgresql.{{ openshift_namespace }}.svc.cluster.local"
+                    valueFrom:
+                      secretKeyRef:
+                          name: postgres-cluster-app
+                          key: host
                   - name: DATABASE_PORT
                     value: '5432'
                   - name: DATABASE_USERNAME
-                    value: postgres
+                    valueFrom:
+                      secretKeyRef:
+                          name: postgres-cluster-app
+                          key: username
                   - name: DATABASE_PASSWORD
                     valueFrom:
                       secretKeyRef:
-                          name: oneuptime-postgresql
-                          key: postgres-password
+                          name: postgres-cluster-app
+                          key: password
                   - name: DATABASE_NAME
-                    value: oneuptimedb
+                    value: oneuptime
                   
                   
                   ## DATABASE SSL BLOCK
@@ -5406,18 +5466,24 @@
                   # Postgres configuration
                   
                   - name: DATABASE_HOST
-                    value: "oneuptime-postgresql.{{ openshift_namespace }}.svc.cluster.local"
+                    valueFrom:
+                      secretKeyRef:
+                          name: postgres-cluster-app
+                          key: host
                   - name: DATABASE_PORT
                     value: '5432'
                   - name: DATABASE_USERNAME
-                    value: postgres
+                    valueFrom:
+                      secretKeyRef:
+                          name: postgres-cluster-app
+                          key: username
                   - name: DATABASE_PASSWORD
                     valueFrom:
                       secretKeyRef:
-                          name: oneuptime-postgresql
-                          key: postgres-password
+                          name: postgres-cluster-app
+                          key: password
                   - name: DATABASE_NAME
-                    value: oneuptimedb
+                    value: oneuptime
                   
                   
                   ## DATABASE SSL BLOCK
@@ -5861,18 +5927,24 @@
                   # Postgres configuration
                   
                   - name: DATABASE_HOST
-                    value: "oneuptime-postgresql.{{ openshift_namespace }}.svc.cluster.local"
+                    valueFrom:
+                      secretKeyRef:
+                          name: postgres-cluster-app
+                          key: host
                   - name: DATABASE_PORT
                     value: '5432'
                   - name: DATABASE_USERNAME
-                    value: postgres
+                    valueFrom:
+                      secretKeyRef:
+                          name: postgres-cluster-app
+                          key: username
                   - name: DATABASE_PASSWORD
                     valueFrom:
                       secretKeyRef:
-                          name: oneuptime-postgresql
-                          key: postgres-password
+                          name: postgres-cluster-app
+                          key: password
                   - name: DATABASE_NAME
-                    value: oneuptimedb
+                    value: oneuptime
                   
                   
                   ## DATABASE SSL BLOCK
@@ -6157,18 +6229,24 @@
                   # Postgres configuration
                   
                   - name: DATABASE_HOST
-                    value: "oneuptime-postgresql.{{ openshift_namespace }}.svc.cluster.local"
+                    valueFrom:
+                      secretKeyRef:
+                          name: postgres-cluster-app
+                          key: host
                   - name: DATABASE_PORT
                     value: '5432'
                   - name: DATABASE_USERNAME
-                    value: postgres
+                    valueFrom:
+                      secretKeyRef:
+                          name: postgres-cluster-app
+                          key: username
                   - name: DATABASE_PASSWORD
                     valueFrom:
                       secretKeyRef:
-                          name: oneuptime-postgresql
-                          key: postgres-password
+                          name: postgres-cluster-app
+                          key: password
                   - name: DATABASE_NAME
-                    value: oneuptimedb
+                    value: oneuptime
                   
                   
                   ## DATABASE SSL BLOCK
@@ -6397,187 +6475,187 @@
                   storage: "10Gi"
               storageClassName: sc-gold
 
-- name: StatefulSet - OneUptime - Postgres
-  kubernetes.core.k8s:
-    definition:
-      apiVersion: v1
-      kind: StatefulSet
-      metadata:
-        name: oneuptime-postgresql
-        namespace: "{{ openshift_namespace }}"
-        labels:
-          app.kubernetes.io/instance: oneuptime
-          app.kubernetes.io/managed-by: Helm
-          app.kubernetes.io/name: postgresql
-          app.kubernetes.io/version: 16.1.0
-          helm.sh/chart: postgresql-14.0.0
-          app.kubernetes.io/component: primary
-      spec:
-        replicas: 1
-        serviceName: oneuptime-postgresql-hl
-        updateStrategy:
-          rollingUpdate: {}
-          type: RollingUpdate
-        selector:
-          matchLabels:
-            app.kubernetes.io/instance: oneuptime
-            app.kubernetes.io/name: postgresql
-            app.kubernetes.io/component: primary
-        template:
-          metadata:
-            name: oneuptime-postgresql
-            labels:
-              app.kubernetes.io/instance: oneuptime
-              app.kubernetes.io/managed-by: Helm
-              app.kubernetes.io/name: postgresql
-              app.kubernetes.io/version: 16.1.0
-              helm.sh/chart: postgresql-14.0.0
-              app.kubernetes.io/component: primary
-          spec:
-            serviceAccountName: oneuptime-postgresql
+# - name: StatefulSet - OneUptime - Postgres
+#   kubernetes.core.k8s:
+#     definition:
+#       apiVersion: v1
+#       kind: StatefulSet
+#       metadata:
+#         name: oneuptime-postgresql
+#         namespace: "{{ openshift_namespace }}"
+#         labels:
+#           app.kubernetes.io/instance: oneuptime
+#           app.kubernetes.io/managed-by: Helm
+#           app.kubernetes.io/name: postgresql
+#           app.kubernetes.io/version: 16.1.0
+#           helm.sh/chart: postgresql-14.0.0
+#           app.kubernetes.io/component: primary
+#       spec:
+#         replicas: 1
+#         serviceName: oneuptime-postgresql-hl
+#         updateStrategy:
+#           rollingUpdate: {}
+#           type: RollingUpdate
+#         selector:
+#           matchLabels:
+#             app.kubernetes.io/instance: oneuptime
+#             app.kubernetes.io/name: postgresql
+#             app.kubernetes.io/component: primary
+#         template:
+#           metadata:
+#             name: oneuptime-postgresql
+#             labels:
+#               app.kubernetes.io/instance: oneuptime
+#               app.kubernetes.io/managed-by: Helm
+#               app.kubernetes.io/name: postgresql
+#               app.kubernetes.io/version: 16.1.0
+#               helm.sh/chart: postgresql-14.0.0
+#               app.kubernetes.io/component: primary
+#           spec:
+#             serviceAccountName: oneuptime-postgresql
             
-            automountServiceAccountToken: false
-            affinity:
-              podAffinity:
+#             automountServiceAccountToken: false
+#             affinity:
+#               podAffinity:
                 
-              podAntiAffinity:
-                preferredDuringSchedulingIgnoredDuringExecution:
-                  - podAffinityTerm:
-                      labelSelector:
-                        matchLabels:
-                          app.kubernetes.io/instance: oneuptime
-                          app.kubernetes.io/name: postgresql
-                          app.kubernetes.io/component: primary
-                      topologyKey: kubernetes.io/hostname
-                    weight: 1
-              nodeAffinity:
+#               podAntiAffinity:
+#                 preferredDuringSchedulingIgnoredDuringExecution:
+#                   - podAffinityTerm:
+#                       labelSelector:
+#                         matchLabels:
+#                           app.kubernetes.io/instance: oneuptime
+#                           app.kubernetes.io/name: postgresql
+#                           app.kubernetes.io/component: primary
+#                       topologyKey: kubernetes.io/hostname
+#                     weight: 1
+#               nodeAffinity:
                 
-            securityContext:
-              fsGroupChangePolicy: Always
-              supplementalGroups: []
-              sysctls: []
-            hostNetwork: false
-            hostIPC: false
-            containers:
-              - name: postgresql
-                image: docker.io/bitnami/postgresql:16.1.0-debian-11-r25
-                resources:
-                  requests:
-                    cpu: 50m
-                    memory: 128Mi
-                imagePullPolicy: "IfNotPresent"
-                securityContext:
-                  allowPrivilegeEscalation: false
-                  capabilities:
-                    drop:
-                    - ALL
-                  privileged: false
-                  readOnlyRootFilesystem: false
-                  runAsNonRoot: true
-                  runAsUser: "{{ user_to_run }}"
-                  seccompProfile:
-                    type: RuntimeDefault
-                env:
-                  - name: BITNAMI_DEBUG
-                    value: "false"
-                  - name: POSTGRESQL_PORT_NUMBER
-                    value: "5432"
-                  - name: POSTGRESQL_VOLUME_DIR
-                    value: "/bitnami/postgresql"
-                  - name: PGDATA
-                    value: "/bitnami/postgresql/data"
-                  # Authentication
-                  - name: POSTGRES_USER
-                    value: "oneuptime"
-                  - name: POSTGRES_PASSWORD
-                    valueFrom:
-                      secretKeyRef:
-                        name: oneuptime-postgresql
-                        key: password
-                  - name: POSTGRES_POSTGRES_PASSWORD
-                    valueFrom:
-                      secretKeyRef:
-                        name: oneuptime-postgresql
-                        key: postgres-password
-                  - name: POSTGRES_DATABASE
-                    value: "oneuptimedb"
-                  # Replication
-                  # Initdb
-                  # Standby
-                  # LDAP
-                  - name: POSTGRESQL_ENABLE_LDAP
-                    value: "no"
-                  # TLS
-                  - name: POSTGRESQL_ENABLE_TLS
-                    value: "no"
-                  # Audit
-                  - name: POSTGRESQL_LOG_HOSTNAME
-                    value: "false"
-                  - name: POSTGRESQL_LOG_CONNECTIONS
-                    value: "false"
-                  - name: POSTGRESQL_LOG_DISCONNECTIONS
-                    value: "false"
-                  - name: POSTGRESQL_PGAUDIT_LOG_CATALOG
-                    value: "off"
-                  # Others
-                  - name: POSTGRESQL_CLIENT_MIN_MESSAGES
-                    value: "error"
-                  - name: POSTGRESQL_SHARED_PRELOAD_LIBRARIES
-                    value: "pgaudit"
-                ports:
-                  - name: tcp-postgresql
-                    containerPort: 5432
-                livenessProbe:
-                  failureThreshold: 6
-                  initialDelaySeconds: 30
-                  periodSeconds: 10
-                  successThreshold: 1
-                  timeoutSeconds: 5
-                  exec:
-                    command:
-                      - /bin/sh
-                      - -c
-                      - exec pg_isready -U "oneuptime" -d "dbname=oneuptimedb" -h 127.0.0.1 -p 5432
-                readinessProbe:
-                  failureThreshold: 6
-                  initialDelaySeconds: 5
-                  periodSeconds: 10
-                  successThreshold: 1
-                  timeoutSeconds: 5
-                  exec:
-                    command:
-                      - /bin/sh
-                      - -c
-                      - -e
-                      - |
-                        exec pg_isready -U "oneuptime" -d "dbname=oneuptimedb" -h 127.0.0.1 -p 5432
-                        [ -f /opt/bitnami/postgresql/tmp/.initialized ] || [ -f /bitnami/postgresql/.initialized ]
-                resources:
-                  limits: {}
-                  requests:
-                    cpu: 250m
-                    memory: 256Mi
-                volumeMounts:
-                  - name: dshm
-                    mountPath: /dev/shm
-                  - name: data
-                    mountPath: /bitnami/postgresql
-            volumes:
-              - name: dshm
-                emptyDir:
-                  medium: Memory
-        volumeClaimTemplates:
-          - apiVersion: v1
-            kind: PersistentVolumeClaim
-            metadata:
-              name: data
-            spec:
-              accessModes:
-                - "ReadWriteOnce"
-              resources:
-                requests:
-                  storage: "10Gi"
-              storageClassName: sc-gold
+#             securityContext:
+#               fsGroupChangePolicy: Always
+#               supplementalGroups: []
+#               sysctls: []
+#             hostNetwork: false
+#             hostIPC: false
+#             containers:
+#               - name: postgresql
+#                 image: docker.io/bitnami/postgresql:16.1.0-debian-11-r25
+#                 resources:
+#                   requests:
+#                     cpu: 50m
+#                     memory: 128Mi
+#                 imagePullPolicy: "IfNotPresent"
+#                 securityContext:
+#                   allowPrivilegeEscalation: false
+#                   capabilities:
+#                     drop:
+#                     - ALL
+#                   privileged: false
+#                   readOnlyRootFilesystem: false
+#                   runAsNonRoot: true
+#                   runAsUser: "{{ user_to_run }}"
+#                   seccompProfile:
+#                     type: RuntimeDefault
+#                 env:
+#                   - name: BITNAMI_DEBUG
+#                     value: "false"
+#                   - name: POSTGRESQL_PORT_NUMBER
+#                     value: "5432"
+#                   - name: POSTGRESQL_VOLUME_DIR
+#                     value: "/bitnami/postgresql"
+#                   - name: PGDATA
+#                     value: "/bitnami/postgresql/data"
+#                   # Authentication
+#                   - name: POSTGRES_USER
+#                     value: "oneuptime"
+#                   - name: POSTGRES_PASSWORD
+#                     valueFrom:
+#                       secretKeyRef:
+#                         name: oneuptime-postgresql
+#                         key: password
+#                   - name: POSTGRES_POSTGRES_PASSWORD
+#                     valueFrom:
+#                       secretKeyRef:
+#                         name: oneuptime-postgresql
+#                         key: postgres-password
+#                   - name: POSTGRES_DATABASE
+#                     value: "oneuptimedb"
+#                   # Replication
+#                   # Initdb
+#                   # Standby
+#                   # LDAP
+#                   - name: POSTGRESQL_ENABLE_LDAP
+#                     value: "no"
+#                   # TLS
+#                   - name: POSTGRESQL_ENABLE_TLS
+#                     value: "no"
+#                   # Audit
+#                   - name: POSTGRESQL_LOG_HOSTNAME
+#                     value: "false"
+#                   - name: POSTGRESQL_LOG_CONNECTIONS
+#                     value: "false"
+#                   - name: POSTGRESQL_LOG_DISCONNECTIONS
+#                     value: "false"
+#                   - name: POSTGRESQL_PGAUDIT_LOG_CATALOG
+#                     value: "off"
+#                   # Others
+#                   - name: POSTGRESQL_CLIENT_MIN_MESSAGES
+#                     value: "error"
+#                   - name: POSTGRESQL_SHARED_PRELOAD_LIBRARIES
+#                     value: "pgaudit"
+#                 ports:
+#                   - name: tcp-postgresql
+#                     containerPort: 5432
+#                 livenessProbe:
+#                   failureThreshold: 6
+#                   initialDelaySeconds: 30
+#                   periodSeconds: 10
+#                   successThreshold: 1
+#                   timeoutSeconds: 5
+#                   exec:
+#                     command:
+#                       - /bin/sh
+#                       - -c
+#                       - exec pg_isready -U "oneuptime" -d "dbname=oneuptimedb" -h 127.0.0.1 -p 5432
+#                 readinessProbe:
+#                   failureThreshold: 6
+#                   initialDelaySeconds: 5
+#                   periodSeconds: 10
+#                   successThreshold: 1
+#                   timeoutSeconds: 5
+#                   exec:
+#                     command:
+#                       - /bin/sh
+#                       - -c
+#                       - -e
+#                       - |
+#                         exec pg_isready -U "oneuptime" -d "dbname=oneuptimedb" -h 127.0.0.1 -p 5432
+#                         [ -f /opt/bitnami/postgresql/tmp/.initialized ] || [ -f /bitnami/postgresql/.initialized ]
+#                 resources:
+#                   limits: {}
+#                   requests:
+#                     cpu: 250m
+#                     memory: 256Mi
+#                 volumeMounts:
+#                   - name: dshm
+#                     mountPath: /dev/shm
+#                   - name: data
+#                     mountPath: /bitnami/postgresql
+#             volumes:
+#               - name: dshm
+#                 emptyDir:
+#                   medium: Memory
+#         volumeClaimTemplates:
+#           - apiVersion: v1
+#             kind: PersistentVolumeClaim
+#             metadata:
+#               name: data
+#             spec:
+#               accessModes:
+#                 - "ReadWriteOnce"
+#               resources:
+#                 requests:
+#                   storage: "10Gi"
+#               storageClassName: sc-gold
 
 - name: StatefulSet - OneUptime - Redis
   kubernetes.core.k8s:

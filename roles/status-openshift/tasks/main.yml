@@ -1,3 +1,13 @@
+- name: "Status - Cluster"
+  include_tasks:
+    file: database.yml
+    apply:
+      tags:
+        - database
+  tags:
+    - database
+    
+
 - name: "Status - OneUptime App"
   include_tasks:
     file: app.yml

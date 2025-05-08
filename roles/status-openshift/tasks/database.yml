@@ -1,0 +1,70 @@
+- name: Create S3 credentials secret
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: s3-credentials
+        namespace: "{{ openshift_namespace }}"
+      stringData:
+        access_key: "{{ keybase_secrets.s3.access_key }}"
+        secret: "{{ keybase_secrets.s3.secret }}"
+
+- name: Deploy PostgreSQL cluster
+  kubernetes.core.k8s:
+      state: present
+      definition:
+          apiVersion: postgresql.cnpg.io/v1
+          kind: Cluster
+          metadata:
+              name: postgres-cluster
+              namespace: "{{ openshift_namespace }}"
+              annotations:
+                  cnpg.io/skipEmptyWalArchiveCheck: "enabled"
+          spec:
+              backup:
+                  barmanObjectStore:
+                      destinationPath: "s3://{{ keybase_secrets.s3.bucket_name }}"
+                      endpointURL: "https://{{ keybase_secrets.s3.host }}"
+                      s3Credentials:
+                          accessKeyId:
+                              name: s3-credentials
+                              key: access_key
+                          secretAccessKey:
+                              name: s3-credentials
+                              key: secret
+              instances: 2
+              storage:
+                  size: "5Gi"
+                  storageClass: "sc-gold"
+              enableSuperuserAccess: true
+              resources:
+                  requests:
+                      cpu: "500m"
+                      memory: "1Gi"
+              bootstrap:
+                initdb:
+                  database: oneuptime
+                  encoding: UTF8
+                  localeCType: C
+                  localeCollate: C
+                  owner: oneuptime
+                # recovery:
+                #   backup:
+                #     name: backup-sample-1509
+
+- name: Create schedule backup
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      kind: ScheduledBackup
+      apiVersion: postgresql.cnpg.io/v1
+      metadata:
+        name: "oneuptime-scheduled-backup"
+        namespace: "{{ openshift_namespace }}"
+      spec:
+        schedule: "0 0 1 * *"
+        backupOwnerReference: self
+        cluster:
+          name: postgres-cluster
