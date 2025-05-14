@@ -20,6 +20,17 @@ Deploy only the cluster (database, scheduled backups)
 ./statusible -t database
 ```
 
+## Tags & Update
+By default, the tag used for the different images is `release`, which is defined in the `app_images_tag` in the [`roles/status-openshift/vars/main.yml`](./roles/status-openshift/vars/main.yml) file.
+
+If you want to pull (from [OneUptime's Docker Hub]) & push (to [Quay svc0041's organization]) a new tag to some images, you can do so by running the following commands (example with the release tag, haraka's image) :
+
+```sh
+docker pull oneuptime/haraka:release
+docker tag oneuptime/haraka:release quay-its.epfl.ch/svc0041/haraka:release
+docker push quay-its.epfl.ch/svc0041/haraka:release
+```
+
 ## Links
 * https://status.epfl.ch/
 * https://status-test.epfl.ch/
@@ -29,3 +40,5 @@ Deploy only the cluster (database, scheduled backups)
 [Ansible]: https://ansible.com (Ansible is Simple IT Automation)
 [suitcase]: https://github.com/epfl-si/ansible.suitcase (Install Ansible and its dependency stack into a temporary directory)
 [Keybase]: https://keybase.io
+[OneUptime's Docker Hub]: https://hub.docker.com/u/oneuptime
+[Quay svc0041's organization]: https://quay-its.epfl.ch/organization/svc0041
