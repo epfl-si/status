@@ -2130,13 +2130,13 @@
                   - name: CALL_DEFAULT_COST_IN_CENTS_PER_MINUTE
                     value: 
                   - name: INTERNAL_SMTP_HOST
-                    value: mail.epfl.ch
+                    value: 
                   - name: INTERNAL_SMTP_FROM_NAME
-                    value: Status
+                    value: 
                   - name: INTERNAL_SMTP_EMAIL
-                    value: "status@epfl.ch"
+                    value:
                   - name: INTERNAL_SMTP_PASSWORD
-                    value: "56w6s$ZErzx71" 
+                    value:
                   - name: DISABLE_TELEMETRY
                     value: "false"
                 ports:
