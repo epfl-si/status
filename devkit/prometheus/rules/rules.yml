@@ -1,0 +1,8 @@
+groups:
+    - name: mycluster_rules
+      rules :
+        - record: deepak_memTotal_used
+          expr: (node_memory_MemTotal_bytes - node_memory_MemFree_bytes ) /1024 /1024
+
+        - alert: ProdNodeDown
+          expr: up{env="Prod" , region="IN"} == 0
