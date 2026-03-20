@@ -3,20 +3,10 @@ volumes:
   alertmanager-data:
 
 services:
-  node_exporter:
-    image: prom/node-exporter:latest
-    container_name: node_exporter
-    command:
-      - '--path.rootfs=/host'
-    network_mode: host
-    pid: host
-    restart: unless-stopped
-    volumes:
-      - '/:/host:ro,rslave'
 
   prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
+    image: prom/prometheus:v3
+    container_name: status_prometheus
     ports:
       - '9090:9090'
     restart: unless-stopped
@@ -28,10 +18,28 @@ services:
       - '--web.enable-lifecycle' # To enable /-/reload, to restart prometheus with new config
       - '--config.file=/etc/prometheus/prometheus.yml'
 
+  alertmanager:
+    image: prom/alertmanager:v0.31.1
+    container_name: status_alertmanager
+    restart: unless-stopped
+    ports:
+      - 9093:9093
+    volumes:
+      - ./alertmanager/:/etc/alertmanager/
+    command:
+      - '--config.file=/etc/alertmanager/config.yml'
+      - '--storage.path=/alertmanager'
+
+  grafana:
+    image: grafana/grafana
+    container_name: status_grafana
+    restart: always
+    ports:
+      - "3030:3000"
+
   blackbox-exporter:
-    # image: quay.io/prometheus/blackbox-exporter:latest
-    image: prom/blackbox-exporter:latest
-    container_name: blackbox_exporter
+    image: prom/blackbox-exporter:v0.28.0
+    container_name: status_blackbox_exporter
     ports:
       - '9115:9115'
     restart: unless-stopped
@@ -39,3 +47,19 @@ services:
       - ./blackbox:/config
     command:
       - '--config.file=/config/blackbox.yml'
+
+  node_exporter:
+    image: prom/node-exporter:v1.10.2
+    container_name: status_node_exporter
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
+    restart: unless-stopped
+    expose:
+      - 9100
