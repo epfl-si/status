@@ -34,6 +34,8 @@ services:
     image: grafana/grafana
     container_name: status_grafana
     restart: always
+    volumes:
+      - ./grafana/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
     ports:
       - "3030:3000"
 

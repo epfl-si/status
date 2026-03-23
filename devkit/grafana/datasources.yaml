@@ -1,0 +1,14 @@
+# /etc/grafana/provisioning/datasources/datasources.yaml
+apiVersion: 1
+
+datasources:
+  # Primary Prometheus instance
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://status_prometheus:9090
+    isDefault: true
+    editable: false
+    jsonData:
+      timeInterval: "15s"
+      httpMethod: POST
