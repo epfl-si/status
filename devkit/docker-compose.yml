@@ -36,6 +36,8 @@ services:
     restart: always
     volumes:
       - ./grafana/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+      - ./grafana/dashboard.yaml:/etc/grafana/provisioning/dashboards/main.yaml
+      - ./grafana/dashboards/:/var/lib/grafana/dashboards
     ports:
       - "3030:3000"
 
