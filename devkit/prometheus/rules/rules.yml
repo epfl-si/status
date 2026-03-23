@@ -1,8 +1,24 @@
 groups:
-    - name: mycluster_rules
-      rules :
-        - record: deepak_memTotal_used
-          expr: (node_memory_MemTotal_bytes - node_memory_MemFree_bytes ) /1024 /1024
+  - name: HTTP_Status_Failure
+    rules:
+      - alert: BlackboxProbeHttpFailure
+        expr: probe_http_status_code <= 199 OR probe_http_status_code >= 400 OR probe_success == 0
+        for: 2m
+        keep_firing_for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: Blackbox probe HTTP failure (instance {{ $labels.instance }})
+          description: "HTTP status code is not 200-399\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
 
-        - alert: ProdNodeDown
-          expr: up{env="Prod" , region="IN"} == 0
+  - name: SSL_Expiry
+    rules:
+      - alert: BlackboxSslCertificateWillExpireSoon
+        expr: 0 <= round((last_over_time(probe_ssl_earliest_cert_expiry[10m]) - time()) / 86400, 0.1) < 60
+        for: 2m
+        keep_firing_for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: Blackbox SSL certificate will expire soon (instance {{ $labels.instance }})
+          description: "SSL certificate expires in less than 200 days\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"

@@ -1,0 +1,18 @@
+route:
+  receiver: 'telegram'
+
+receivers:
+  - name: 'telegram'
+    telegram_configs:
+    - bot_token: 'XXXXXXXX:XXXXXXXX' # You can get me with @BotFather
+      chat_id: -XXXXXXXX # You can get me by add @getidsbot to you channel
+  - name: 'email'
+    email configs:
+    - to: 'example2@epfl.ch, example3@epfl.ch'
+      from: 'example@epfl.ch'
+      smarthost: smtp.gmail.com:587 # change to you smtp server
+      auth username: 'example@epfl.ch' # Change to your email
+      auth_password: 'pa$$word' # Change to your password
+      headers :
+        Subject: 'Highly urgent .. .Please look ASAP !! '
+      text: '{ { . CommonAnnotations. summary } } '
