@@ -1,0 +1,151 @@
+name: Build and Release
+
+on:
+    push:
+        branches: [main]
+
+env:
+    REGISTRY_PATH: ghcr.io/${{ github.repository }}
+    FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+    code-quality:
+        name: Code Quality
+        runs-on: ubuntu-24.04
+        permissions:
+            contents: read
+        steps:
+            - uses: actions/checkout@v5
+
+            - uses: oven-sh/setup-bun@v2
+              with:
+                  bun-version: latest
+
+            - run: bun install --frozen-lockfile
+
+            - name: Biome CI check
+              run: bunx biome ci --reporter=github ./src
+
+            - name: Biome lint report
+              if: always()
+              run: bunx biome lint --reporter=json ./src > biome-report.json || true
+
+            - name: Upload lint report
+              if: always()
+              uses: actions/upload-artifact@v5
+              with:
+                  name: biome-lint-report
+                  path: biome-report.json
+                  retention-days: 7
+
+    detect-version:
+        name: Detect Version
+        runs-on: ubuntu-24.04
+        permissions:
+            contents: read
+        outputs:
+            version: ${{ steps.get_version.outputs.version }}
+            should_build: ${{ steps.check.outputs.should_build }}
+        steps:
+            - uses: actions/checkout@v5
+
+            - name: Get version from package.json
+              id: get_version
+              run: |
+                  VERSION=$(jq -r .version package.json)
+                  [ "$VERSION" = "null" ] && echo "No version in package.json" && exit 1
+                  echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+            - name: Check if release exists
+              id: check
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  gh release view "v${{ steps.get_version.outputs.version }}" >/dev/null 2>&1 \
+                    && echo "should_build=false" >> $GITHUB_OUTPUT \
+                    || echo "should_build=true" >> $GITHUB_OUTPUT
+
+    build-and-push:
+        name: Build and Push
+        needs: [code-quality, detect-version]
+        if: needs.detect-version.outputs.should_build == 'true'
+        runs-on: ubuntu-24.04
+        permissions:
+            contents: read
+            packages: write
+        outputs:
+            build_success: ${{ steps.result.outputs.success }}
+        steps:
+            - uses: actions/checkout@v5
+            - uses: docker/setup-buildx-action@v4
+
+            - uses: docker/login-action@v4
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
+
+            - uses: docker/metadata-action@v6
+              id: meta
+              with:
+                  images: ${{ env.REGISTRY_PATH }}
+                  tags: |
+                      type=raw,value=latest
+                      type=raw,value=${{ needs.detect-version.outputs.version }}
+
+            - uses: docker/build-push-action@v6
+              with:
+                  context: .
+                  push: true
+                  tags: ${{ steps.meta.outputs.tags }}
+                  labels: ${{ steps.meta.outputs.labels }}
+                  platforms: linux/amd64
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max
+
+            - id: result
+              run: echo "success=true" >> $GITHUB_OUTPUT
+
+    create-release:
+        name: Create Release
+        needs: [detect-version, build-and-push]
+        if: needs.build-and-push.outputs.build_success == 'true'
+        runs-on: ubuntu-24.04
+        permissions:
+            contents: write
+        steps:
+            - uses: actions/checkout@v5
+              with:
+                  fetch-depth: 0
+
+            - name: Generate release notes
+              run: |
+                  VERSION="${{ needs.detect-version.outputs.version }}"
+                  LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+                  LOG_RANGE="${LAST_TAG:+${LAST_TAG}..HEAD}"
+
+                  COMMITS=$(git log ${LOG_RANGE} --oneline --pretty=format:"%h %s")
+                  COUNT=$(git rev-list ${LOG_RANGE:-HEAD} --count)
+
+                  echo "Release v$VERSION — $COUNT commits." > notes.md
+
+                  section() {
+                    local title=$1 pattern=$2
+                    local matches
+                    matches=$(grep -iE "^\S+ \[${pattern}\]" <<< "$COMMITS" | sed 's/^/- /') || return 0
+                    printf "\n### %s\n%s\n" "$title" "$matches" >> notes.md
+                  }
+
+                  section "✨ Features"       "feature|add"
+                  section "🐛 Bug Fixes"      "fix|bugfix|hotfix"
+                  section "🔧 Maintenance"    "refactor|chore|perf|update|version"
+                  section "📚 Documentation"  "docs|doc"
+
+            - name: Create GitHub Release
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  gh release create "v${{ needs.detect-version.outputs.version }}" \
+                    --title "v${{ needs.detect-version.outputs.version }}" \
+                    --notes-file notes.md \
+                    --latest

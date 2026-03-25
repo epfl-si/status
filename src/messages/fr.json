@@ -1,0 +1,67 @@
+{
+  "app": {
+    "title": "Next.js Starter Kit"
+  },
+  "navigation": {
+    "signin": "Se connecter",
+    "signout": "Se déconnecter"
+  },
+  "actions": {
+    "retry": "Réessayer",
+    "backToHome": "Retour à l'accueil",
+    "previousPage": "Page précédente",
+    "signin": "Se connecter",
+    "signout": "Se déconnecter"
+  },
+  "errors": {
+    "generic": {
+      "title": "Une erreur est survenue",
+      "description": "Une erreur inattendue s'est produite. Veuillez réessayer.",
+      "errorCode": "Code d'erreur"
+    },
+    "notFound": {
+      "title": "Cette page n'existe pas.",
+      "contact": "Besoin d'aide ? Contactez"
+    }
+  },
+  "pages": {
+    "home": {
+      "title": "Next.js Starter Kit",
+      "subtitle": "Une base prête pour la production pour les applications EPFL",
+      "description": "Tout ce qu'il faut pour créer des applications web sécurisées, multilingues et modernes à l'EPFL — authentification, i18n, composants UI et déploiement Docker inclus.",
+      "featureAuth": "Authentification Entra ID",
+      "featureAuthDesc": "SSO via Microsoft Entra ID avec sessions JWT et renouvellement automatique des tokens.",
+      "featureI18n": "Internationalisation",
+      "featureI18nDesc": "Support français et anglais avec next-intl et persistance de la langue par cookie.",
+      "featureUi": "UI moderne",
+      "featureUiDesc": "Tailwind CSS v4, composants shadcn/ui et la police Suisse Intl.",
+      "featureDocker": "Docker & CI/CD",
+      "featureDockerDesc": "Build Next.js standalone dans un Dockerfile multi-étapes Bun avec GitHub Actions.",
+      "cta": "Accéder au tableau de bord",
+      "ctaSignin": "Connectez-vous pour accéder au tableau de bord"
+    },
+    "dashboard": {
+      "title": "Tableau de bord",
+      "subtitle": "Consultez votre session, vos groupes et accréditations.",
+      "fieldName": "Nom complet",
+      "fieldEmail": "Email",
+      "fieldUsername": "Nom d'utilisateur GASPAR",
+      "fieldUserId": "Identifiant unique",
+      "groups": "Groupes",
+      "accreds": "Accréditations",
+      "noGroups": "Aucun groupe attribué.",
+      "noAccreds": "Aucune accréditation trouvée.",
+      "rawSession": "Session brute",
+      "accredUnit": "Unité",
+      "accredPath": "Chemin",
+      "accredId": "ID"
+    },
+    "footer": {
+      "gethelp": "Obtenir de l'aide",
+      "accessibility": "Accessibilité",
+      "disclaimer": "Mentions légales",
+      "privacy": "Politique de confidentialité",
+      "allRightsReserved": "Tous droits réservés"
+    }
+  }
+}

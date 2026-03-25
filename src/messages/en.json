@@ -1,0 +1,67 @@
+{
+  "app": {
+    "title": "Next.js Starter Kit"
+  },
+  "navigation": {
+    "signin": "Sign in",
+    "signout": "Sign out"
+  },
+  "actions": {
+    "retry": "Try again",
+    "backToHome": "Back to home",
+    "previousPage": "Previous page",
+    "signin": "Sign in",
+    "signout": "Sign out"
+  },
+  "errors": {
+    "generic": {
+      "title": "Something went wrong",
+      "description": "An unexpected error occurred. Please try again.",
+      "errorCode": "Error code"
+    },
+    "notFound": {
+      "title": "This page does not exist.",
+      "contact": "Need help? Contact"
+    }
+  },
+  "pages": {
+    "home": {
+      "title": "Next.js Starter Kit",
+      "subtitle": "A production-ready foundation for EPFL applications",
+      "description": "Everything you need to build secure, multilingual, and modern web apps at EPFL — authentication, i18n, UI components, and Docker deployment included.",
+      "featureAuth": "Entra ID Authentication",
+      "featureAuthDesc": "SSO via Microsoft Entra ID with JWT sessions and automatic token refresh.",
+      "featureI18n": "Internationalization",
+      "featureI18nDesc": "French and English support with next-intl and cookie-based locale persistence.",
+      "featureUi": "Modern UI",
+      "featureUiDesc": "Tailwind CSS v4, shadcn/ui components, and the Suisse Intl typeface.",
+      "featureDocker": "Docker & CI/CD",
+      "featureDockerDesc": "Standalone Next.js output in a multi-stage Bun Dockerfile with GitHub Actions.",
+      "cta": "Go to Dashboard",
+      "ctaSignin": "Sign in to access the Dashboard"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "subtitle": "Inspect your session, groups and accreditations.",
+      "fieldName": "Full name",
+      "fieldEmail": "Email",
+      "fieldUsername": "GASPAR username",
+      "fieldUserId": "Unique ID",
+      "groups": "Groups",
+      "accreds": "Accreditations",
+      "noGroups": "No groups assigned.",
+      "noAccreds": "No accreditations found.",
+      "rawSession": "Raw session",
+      "accredUnit": "Unit",
+      "accredPath": "Path",
+      "accredId": "ID"
+    },
+    "footer": {
+      "gethelp": "Get help",
+      "accessibility": "Accessibility",
+      "disclaimer": "Legal notice",
+      "privacy": "Privacy policy",
+      "allRightsReserved": "All rights reserved"
+    }
+  }
+}

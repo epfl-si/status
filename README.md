@@ -1,61 +1,124 @@
-<!-- Using "Markdwon all ine one" extension. Put after theses lines, ctrl + shift + p and write "Markdown" and click to "Markdwon all ine one: Create Table of Contents". Auto-reload while saving -->
-- [Setup](#setup)
-  - [Grafana](#grafana)
-    - [Import Dashboard to test your config](#import-dashboard-to-test-your-config)
-      - [Import a Dashboard](#import-a-dashboard)
-      - [Node Exporter](#node-exporter)
-      - [Blackbox Exporter](#blackbox-exporter)
-  - [Alertmanager](#alertmanager)
-    - [Send alert in telegram using alertmanager](#send-alert-in-telegram-using-alertmanager)
+# Status — EPFL SI
 
+>[!NOTE]
+> This website is created from the [EPFL's next.js starter kit](https://github.com/epfl-si/next-starterkit)
 
-# Setup
+A simple next.js monitoring solution based on Prometheus.
 
-## Grafana
+## Features
 
-### Import Dashboard to test your config
+- **Authentication** — SSO via Microsoft Entra ID (Auth.js v5), JWT sessions with automatic token refresh. User profile enriched from the EPFL userinfo API (`groups`, `accreds`).
+- **Internationalization** — French and English with [next-intl](https://next-intl-docs.vercel.app/), cookie-based locale persistence.
+- **UI** — Tailwind CSS v4, shadcn/ui components, Suisse Intl typeface.
+- **Code quality** — [Biome](https://biomejs.dev/) for linting and formatting.
+- **Docker** — Multi-stage Bun + Node.js Dockerfile with standalone Next.js output.
+- **CI/CD** — GitHub Actions: lint check, Docker build & push to GHCR, automatic GitHub Release on version bump.
 
-#### Import a Dashboard
+## Requirements
 
-1. Go to http://localhost:3030
-2. Go to /dashboards
-3. At the top right corner, click to "New" and "Import"
-4. In Field with placeholder "Grafana.com dashboard URL or ID" or similar, paste id in next step, and after that, click first to the load button next to it and  to Import
+- [Bun](https://bun.sh/) ≥ 1.2
+- A Microsoft Entra ID app registration with the following redirect URI: `http://localhost:3000/api/auth/callback/microsoft-entra-id`
+- Access rights to the team `epfl_status` in keybase
 
-#### Node Exporter
+## Getting Started
 
-id : 1860
-Link : https://grafana.com/grafana/dashboards/1860-node-exporter-full/
+```bash
+bun install
+cp .env.example .env.local
+# fill in .env.local
+bun dev
+```
 
-#### Blackbox Exporter
+Open [http://localhost:3000](http://localhost:3000).
 
-id : 7587
-Link : https://grafana.com/grafana/dashboards/7587-prometheus-blackbox-exporter/
+## Environment Variables
 
-## Alertmanager
+| Variable | Description |
+|---|---|
+| `AUTH_SECRET` | Random secret for Auth.js session encryption (`openssl rand -base64 32`) |
+| `ENTRA_ID` | EntraID application (client) ID |
+| `ENTRA_SECRET` | EntraID client secret |
+| `ENTRA_ISSUER` | `https://login.microsoftonline.com/<tenant-id>/v2.0` |
 
-### Send alert in telegram using alertmanager
+>[!NOTE]
+> all theses secrets can be find to the team `epfl_status` folder in keybase (`secrets.yaml` file)
 
-For this, you need to first create a Telegram bot
+## Scripts
 
-1. Message @BotFather in Telegram
-2. /newbot
-3. Write the name's bot (display name)
-4. Write the username's bot (name to add to group, unique name)
-5. Copy the token and keep it
+| Command | Description |
+|---|---|
+| `bun dev` | Start development server |
+| `bun build` | Build for production |
+| `bun start` | Start production server |
+| `bun lint` | Run Biome checks |
+| `bun format` | Auto-format with Biome |
 
-Next, you need to create a group if you doesn't have already. If you already have one, bump to step 4. of the following steps
+## Project Structure
 
-1. Click to the menu burger (3 rows icons at the corner)
-2. Click to "New Group"
-3. Give a name
-4. Add your bot previously created using its username
-5. After group creation, add @getidsbot to your group (it doesn't need to watch your previous message)
-6. It will send a message with your chat id, keep it
-7. Optionnaly, you can remove @getidsbot bot if you ensure to keep the chat id
+```
+src/
+├── app/
+│   ├── (root)/           # Pages with header + footer
+│   │   ├── page.tsx      # Home page
+│   │   └── dashboard/    # Protected dashboard (groups, accreds, raw session)
+│   ├── api/auth/         # Auth.js route handlers
+│   ├── error.tsx         # Global error boundary
+│   └── not-found.tsx     # 404 page
+├── components/
+│   ├── header.tsx        # Navigation bar
+│   ├── footer.tsx        # EPFL footer
+│   └── ui/               # shadcn/ui components
+├── constants/
+│   ├── i18n.ts           # Supported locales
+│   └── routes.ts         # Protected route patterns
+├── messages/
+│   ├── en.json           # English translations
+│   └── fr.json           # French translations
+├── services/
+│   ├── auth.ts           # Auth.js + EPFL userinfo integration
+│   └── locale.ts         # Cookie-based locale management
+├── types/
+│   └── next-auth.d.ts    # NextAuth type extensions
+├── i18n.ts               # next-intl request config
+└── proxy.ts              # Middleware for protected routes
+```
 
-After the bot is created and the group too
+## Protected Routes
 
-1. Go to `devkit/alertmanager` and rename `config.yml.example` to `config.yml`
-2. Replace `bot_token` by your bot token value claimed before
-3. Replace `chat_id` by your group id
+Routes defined in `src/constants/routes.ts` redirect unauthenticated users to the sign-in page. Currently `/dashboard` and all sub-paths are protected.
+
+To add a new protected route:
+
+```ts
+// src/constants/routes.ts
+export const PROTECTED_ROUTES = {
+  DASHBOARD: { path: /^\/dashboard(\/.*)?$/ },
+  MY_ROUTE:  { path: /^\/my-route(\/.*)?$/ },
+};
+```
+
+## Adding UI Components
+
+This project uses [shadcn/ui](https://ui.shadcn.com/). Add components with:
+
+```bash
+bunx shadcn add <component>
+```
+
+## Docker
+
+```bash
+docker build -t status .
+docker run -p 3000:3000 --env-file .env.local status
+```
+
+## CI/CD
+
+The GitHub Actions workflow (`.github/workflows/build.yml`) runs on every push to `main`:
+
+1. **Code Quality** — Biome lint check, uploads report as artifact.
+2. **Detect Version** — Reads `version` from `package.json`; skips build if a release with that version already exists.
+3. **Build and Push** — Builds the Docker image and pushes to GHCR (`ghcr.io/<owner>/<repo>`).
+4. **Create Release** — Creates a GitHub Release with auto-generated notes from conventional commit messages.
+
+To trigger a new release, bump the version in `package.json` and push to `main`.

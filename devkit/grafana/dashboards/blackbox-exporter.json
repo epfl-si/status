@@ -204,9 +204,7 @@
         "orientation": "horizontal",
         "percentChangeColorMode": "standard",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -500,9 +498,7 @@
         "orientation": "horizontal",
         "percentChangeColorMode": "standard",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -576,9 +572,7 @@
         "orientation": "horizontal",
         "percentChangeColorMode": "standard",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -672,9 +666,7 @@
         "orientation": "horizontal",
         "percentChangeColorMode": "standard",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -770,9 +762,7 @@
         "orientation": "horizontal",
         "percentChangeColorMode": "standard",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -846,9 +836,7 @@
         "orientation": "horizontal",
         "percentChangeColorMode": "standard",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -922,9 +910,7 @@
         "orientation": "horizontal",
         "percentChangeColorMode": "standard",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -952,10 +938,7 @@
   "preload": false,
   "refresh": "10s",
   "schemaVersion": 42,
-  "tags": [
-    "blackbox",
-    "prometheus"
-  ],
+  "tags": ["blackbox", "prometheus"],
   "templating": {
     "list": [
       {
@@ -1042,9 +1025,7 @@
       {
         "current": {
           "text": "All",
-          "value": [
-            "$__all"
-          ]
+          "value": ["$__all"]
         },
         "includeAll": true,
         "multi": true,
