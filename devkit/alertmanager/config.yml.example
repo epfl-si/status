@@ -1,18 +1,75 @@
+global:
+  smtp_smarthost: ''
+  smtp_auth_username: ''
+  smtp_auth_password: ''
+  smtp_require_tls: true
+  smtp_from: ''
+
 route:
-  receiver: 'telegram'
+  # When a new group of alerts is created by an incoming alert, wait at
+  # least 'group_wait' to send the initial notification.
+  # This way ensures that you get multiple alerts for the same group that start
+  # firing shortly after another are batched together on the first
+  # notification.
+  group_wait: 45s
+  # When the first notification was sent, wait 'group_interval' to send a batch
+  # of new alerts that started firing for that group.
+  group_interval: 10m
+  # If an alert has successfully been sent, wait 'repeat_interval' to
+  # resend them.
+  repeat_interval: 2h
+  # A default receiver
+  receiver: 'status-admin'
+
+  routes:
+    - receiver: null
+      matchers:
+        - severity=none
+
+    - receiver: 'status-uptime-websiteforalertingtest'
+      group_by: ['instance']
+      matchers:
+        # - service="httpdown"
+        - instance="https://websiteforalertingtest.com"
+
+    - receiver: 'status-example'
+      group_by: ['instance']
+      matchers:
+        # - service="sslexpiry"
+        - instance="https://example.com"
 
 receivers:
-  - name: 'telegram'
-    telegram_configs:
-    - bot_token: 'XXXXXXXX:XXXXXXXX' # You can get me with @BotFather
-      chat_id: -XXXXXXXX # You can get me by add @getidsbot to you channel
-  - name: 'email'
-    email configs:
-    - to: 'example2@epfl.ch, example3@epfl.ch'
-      from: 'example@epfl.ch'
-      smarthost: smtp.gmail.com:587 # change to you smtp server
-      auth username: 'example@epfl.ch' # Change to your email
-      auth_password: 'pa$$word' # Change to your password
+  - name: 'status-admin'
+    email_configs:
+    - to: 'email@epfl.ch, email+statusadmin@epfl.ch'
       headers :
-        Subject: 'Highly urgent .. .Please look ASAP !! '
+        Subject: '(admin) Highly urgent... Please look ASAP !!'
+      text: '{ { . CommonAnnotations. summary } } '
+
+  - name: 'status-uptime-all'
+    email_configs:
+    - to: 'email@epfl.ch, email+statusuptimeall@epfl.ch'
+      headers :
+        Subject: '(uptime) Highly urgent... Please look ASAP !!'
+      text: '{ { . CommonAnnotations. summary } } '
+
+  - name: 'status-uptime-websiteforalertingtest'
+    email_configs:
+    - to: 'email@epfl.ch, email+statusuptimewebsiteforalertingtest@epfl.ch'
+      headers :
+        Subject: '{{ if eq .Status "firing" }}[{{ .GroupLabels.instance }}] Alert - {{ .GroupLabels.servidor }} - {{ .GroupLabels.alertname }} {{ else if eq .Status "resolved" }}[{{ .GroupLabels.environment }}] Recovery - {{ .GroupLabels.servidor }} - {{ .GroupLabels.alertname }}{{end}}'
+      text: '{ { . CommonAnnotations. summary } } '
+
+  - name: 'status-example'
+    email_configs:
+    - to: 'email@epfl.ch, email+statusexample@epfl.ch'
+      headers :
+        Subject: '(uptime) Highly urgent... Please look ASAP !!'
+      text: '{ { . CommonAnnotations. summary } } '
+
+  - name: 'status-ssl'
+    email_configs:
+    - to: 'email@epfl.ch, email+statusssl@epfl.ch'
+      headers :
+        Subject: '(ssl) Highly urgent... Please look ASAP !!'
       text: '{ { . CommonAnnotations. summary } } '

@@ -1,0 +1,4 @@
+scrape_configs:
+  - job_name: 'blackbox_exporter'  # collect blackbox exporter's operational metrics.
+    static_configs:
+      - targets: ['status_blackbox_exporter:9115']

@@ -8,6 +8,7 @@ global:
   # How frequently to evaluate rules.
   evaluation_interval: 1m
 
+
 alerting:
   alertmanagers:
     - scheme: http
@@ -17,27 +18,5 @@ alerting:
 rule_files:
   - "rules/*.yml"
 
-# A list of scrape configurations.
-scrape_configs:
-  - job_name: 'nodeexporter'
-    scrape_interval: 5s
-    static_configs:
-      - targets: ['status_node_exporter:9100']
-  - job_name: 'blackbox'
-    metrics_path: /probe
-    params:
-      module: [http_2xx]  # Look for a HTTP 200 response.
-    static_configs:
-      - targets:
-        - https://example.com
-        - https://websiteforalertingtest.com
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: __param_target
-      - source_labels: [__param_target]
-        target_label: instance
-      - target_label: __address__
-        replacement: status_blackbox_exporter:9115  # The blackbox exporter's real hostname:port.
-  - job_name: 'blackbox_exporter'  # collect blackbox exporter's operational metrics.
-    static_configs:
-      - targets: ['status_blackbox_exporter:9115']
+scrape_config_files:
+  - "scrapes/*.yml"

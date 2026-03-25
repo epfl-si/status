@@ -12,7 +12,8 @@ services:
     restart: unless-stopped
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-      - ./prometheus/rules/rules.yml:/etc/prometheus/rules/rules.yml
+      - ./prometheus/rules/:/etc/prometheus/rules/
+      - ./prometheus/scrapes/:/etc/prometheus/scrapes/
       - prometheus-data:/prometheus
     command:
       - '--web.enable-lifecycle' # To enable /-/reload, to restart prometheus with new config
@@ -29,6 +30,7 @@ services:
     command:
       - '--config.file=/etc/alertmanager/config.yml'
       - '--storage.path=/alertmanager'
+      - '--web.external-url=http://localhost:9093'
 
   grafana:
     image: grafana/grafana

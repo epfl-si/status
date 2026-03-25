@@ -1,0 +1,13 @@
+groups:
+  - name: HTTP_Status_Failure
+    rules:
+      - alert: BlackboxProbeHttpFailure
+        expr: probe_http_status_code <= 199 OR probe_http_status_code >= 400 OR probe_success == 0
+        for: 0m # dev ? 0m : 1m
+        keep_firing_for: 0m # dev ? 0m : 1m
+        labels:
+          severity: critical
+          service: httpdown
+        annotations:
+          summary: Blackbox probe HTTP failure (instance {{ $labels.instance }})
+          description: "HTTP status code is not 200-399\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
