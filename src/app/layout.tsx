@@ -26,8 +26,8 @@ const suisse = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Next.js Starter Kit",
-  description: "A Next.js starter kit with Microsoft Entra ID authentication, internationalization, and more.",
+  title: "Status",
+  description: "Status ~ A simple next.js monitoring solution based on Prometheus.",
   icons: {
     icon: [
       {
