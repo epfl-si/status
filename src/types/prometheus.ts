@@ -33,3 +33,28 @@ interface ScrapeJob{
 export interface Scrape{
   scrape_configs: ScrapeJob[],
 };
+
+export interface PrometheusMetricQueryValuesResponse{
+  timestamp: number,
+  httpResponse: string,
+  httpStatus: string,
+  httpStatusCode: string,
+  datetime: Date
+}
+
+export interface PrometheusMetricQueryResponse{
+  metric: {
+    __name__: string, // queryName
+    instance: string // url
+    job: string,
+  },
+  values: PrometheusMetricQueryValuesResponse[],
+}
+
+export interface PrometheusQueryResponse{
+  success: boolean,
+  data: {
+    result: PrometheusMetricQueryResponse[],
+    resultType: string,
+  }
+}

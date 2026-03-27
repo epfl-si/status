@@ -1,5 +1,5 @@
-import { configFiles, files, Scrape } from "@/types/config-files";
-import { getFileConfigContent, editFileConfigContent, addWebsiteToFileConfigContent } from "./config";
+import { configFiles, files, Scrape } from "@/types/prometheus";
+import { getFileConfigContent, editFileConfigContent, addWebsiteToFileConfigContent } from "./prometheus";
 
 export class FileConfig{
   type: configFiles;

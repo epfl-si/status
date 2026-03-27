@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "Next.js Starter Kit"
+    "title": "Status"
   },
   "navigation": {
     "signin": "Se connecter",
@@ -26,7 +26,7 @@
   },
   "pages": {
     "home": {
-      "title": "Next.js Starter Kit",
+      "title": "Status",
       "subtitle": "Une base prête pour la production pour les applications EPFL",
       "description": "Tout ce qu'il faut pour créer des applications web sécurisées, multilingues et modernes à l'EPFL — authentification, i18n, composants UI et déploiement Docker inclus.",
       "featureAuth": "Authentification Entra ID",

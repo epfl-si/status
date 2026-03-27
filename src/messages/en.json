@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "Next.js Starter Kit"
+    "title": "Status"
   },
   "navigation": {
     "signin": "Sign in",
@@ -26,7 +26,7 @@
   },
   "pages": {
     "home": {
-      "title": "Next.js Starter Kit",
+      "title": "Status",
       "subtitle": "A production-ready foundation for EPFL applications",
       "description": "Everything you need to build secure, multilingual, and modern web apps at EPFL — authentication, i18n, UI components, and Docker deployment included.",
       "featureAuth": "Entra ID Authentication",
