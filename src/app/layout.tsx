@@ -9,6 +9,8 @@ export const dynamic = "force-dynamic";
 import { SessionProvider } from "@/providers/session";
 import { auth } from "@/services/auth";
 
+import { Toaster } from "@/components/ui/sonner"
+
 const suisse = localFont({
   src: [
     {
@@ -47,6 +49,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className="antialiased h-full flex flex-col font-sans">
         <NextIntlClientProvider messages={messages}>
           <SessionProvider session={session}>{children}</SessionProvider>
+          <Toaster />
         </NextIntlClientProvider>
       </body>
     </html>

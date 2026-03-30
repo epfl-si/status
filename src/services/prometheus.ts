@@ -91,9 +91,14 @@ export const getHTTPResponse = async () => {
   return response;
 };
 
-export const getAlertSubscriberConfig = async () => {
+const getAlertConfig = async () => {
   const alertConfigSrc = files.alert;
   const alertConfig: Alert = await getFileConfigContent(alertConfigSrc);
+  return alertConfig;
+};
+
+export const getAlertSubscriberConfig = async () => {
+  const alertConfig: Alert = await getAlertConfig();
   delete alertConfig.global;
   return alertConfig;
 };
@@ -112,7 +117,9 @@ export const getAlertSubscriber = async () => {
 
 export const followAlert = async (receiverName: string, email: string) => {
   const alertConfigSrc = files.alert;
-  const alertConfig: Alert = await getAlertSubscriberConfig();
+  const alertConfig: Alert = await getAlertConfig();
+
+  let success = false;
 
   const receiver = alertConfig.receivers.filter((receiver) => receiver.name === receiverName)[0];
   if (!receiver.email_configs.map((email_config) => email_config.to)[0].includes(email)) {
@@ -122,12 +129,20 @@ export const followAlert = async (receiverName: string, email: string) => {
 
     await editFileConfigContent({ src: alertConfigSrc, content: alertConfig });
     await refreshConfig("alert");
+    success = true;
   }
+
+  const matcher = alertConfig.route.routes.filter((route) => route.receiver === receiverName)[0].matchers[0];
+  const website = matcher?.substring(matcher?.indexOf('"') + 1, matcher?.lastIndexOf('"'));
+
+  return { isActionFollow: true, website, success };
 };
 
 export const unfollowAlert = async (receiverName: string, email: string) => {
   const alertConfigSrc = files.alert;
-  const alertConfig: Alert = await getAlertSubscriberConfig();
+  const alertConfig: Alert = await getAlertConfig();
+
+  let success = false;
 
   const receiver = alertConfig.receivers.filter((receiver) => receiver.name === receiverName)[0];
   if (receiver.email_configs.map((email_config) => email_config.to)[0].includes(email)) {
@@ -140,5 +155,11 @@ export const unfollowAlert = async (receiverName: string, email: string) => {
 
     await editFileConfigContent({ src: alertConfigSrc, content: alertConfig });
     await refreshConfig("alert");
+    success = true;
   }
+
+  const matcher = alertConfig.route.routes.filter((route) => route.receiver === receiverName)[0].matchers[0];
+  const website = matcher?.substring(matcher?.indexOf('"') + 1, matcher?.lastIndexOf('"'));
+
+  return { isActionFollow: false, website, success };
 };

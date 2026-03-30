@@ -21,6 +21,10 @@ import { AlertSubscriber, PrometheusMetricQueryResponse, PrometheusMetricQueryVa
 import { Badge } from "./ui/badge"
 import { Bell, BellMinus, BellOff, BellPlus, BellRing } from "lucide-react"
 import { followAlert, unfollowAlert } from "@/services/prometheus"
+import { Button } from "./ui/button"
+import { Spinner } from "./ui/spinner"
+
+import { toast } from "sonner"
 
 const chartConfig = {
   views: {
@@ -32,12 +36,13 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export default function UptimeBarChart({ site, alertSubscriber, userEmail }: {site: PrometheusMetricQueryResponse, alertSubscriber: AlertSubscriber | undefined, userEmail: string }) {
+export default function UptimeBarChart({ website, alertSubscriber, userEmail }: {website: PrometheusMetricQueryResponse, alertSubscriber: AlertSubscriber | undefined, userEmail: string }) {
 
-  const [siteUrl, setSiteUrl] = useState(site?.metric.instance);
-  const [chartData, setChartData] = useState<PrometheusMetricQueryValuesResponse[] | undefined>(site?.values);
+  const [websiteUrl, setWebsiteUrl] = useState(website?.metric.instance);
+  const [chartData, setChartData] = useState<PrometheusMetricQueryValuesResponse[] | undefined>(website?.values);
 
   const [onBellOver, setOnBellOver] = useState(false);
+  const [loadingChange, setLoadingChange] = useState(false)
 
   useEffect(() => {
     setChartDataFormat(chartData?.map((data) => (
@@ -63,26 +68,30 @@ export default function UptimeBarChart({ site, alertSubscriber, userEmail }: {si
   )));
 
   const manageAlert = async (receiverName: string, email: string) => {
+    setLoadingChange(true);
     const isSubscribe = alertSubscriber?.emails.includes(userEmail);
+    let data;
     if (isSubscribe) {
-      await unfollowAlert(receiverName, email);
+      data = await unfollowAlert(receiverName, email);
     }
     else {
-      await followAlert(receiverName, email);
+      data = await followAlert(receiverName, email);
     }
+    setLoadingChange(false);
+    return data;
   };
 
   return (
     <Card className="py-0 mb-4">
       <CardHeader className="flex flex-col items-stretch border-b p-0! sm:flex-row">
         <div className="flex flex-1 flex-col justify-center gap-1 px-6 pt-4 pb-3 sm:py-0!">
-          <CardTitle>{siteUrl}</CardTitle>
+          <CardTitle>{websiteUrl}</CardTitle>
           <CardDescription>
             Le status sur les 30 dernières minutes
           </CardDescription>
         </div>
         <div>{
-          parseInt(site.values[site.values.length - 1].httpStatus) === 1 ?
+          parseInt(website.values[website.values.length - 1].httpStatus) === 1 ?
             <Badge className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
               UP
             </Badge>
@@ -140,27 +149,49 @@ export default function UptimeBarChart({ site, alertSubscriber, userEmail }: {si
           </BarChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="cursor-pointer"
+      <CardFooter className="cursor-pointer mb-2">
+      <Button disabled={loadingChange} size="sm"
         onMouseEnter={() => setOnBellOver(true)}
         onMouseLeave={() => setOnBellOver(false)}
-        onClick={() => manageAlert(alertSubscriber?.name || "", userEmail)}>
-        <div>
+          onClick={() => {
+            toast.promise<{ isActionFollow: boolean, website: string, success: boolean }>(
+              () =>
+                new Promise(async(resolve) =>{
+                  const data = await manageAlert(alertSubscriber?.name || "", userEmail);
+                  resolve(data);
+                }),
+              {
+                loading: "Loading...",
+                success: (data) => {setLoadingChange(false); return `You're now ${data.isActionFollow ? "follow" : "unfollow"} to alerts of ${data.website}`},
+                error: "Error",
+              }
+              )
+            }}>
           {
-            onBellOver ?
-              alertSubscriber?.emails.includes(userEmail) ?
-                <BellMinus />
+            loadingChange ?
+              <Spinner data-icon="inline-start" />
+              :
+              onBellOver ?
+                alertSubscriber?.emails.includes(userEmail) ?
+                  <BellMinus />
+                  :
+                  <BellPlus />
                 :
-                <BellPlus />
+                alertSubscriber?.emails.includes(userEmail) ?
+                  <BellRing/>
+                  :
+                  <Bell/>
+          }
+          {
+            loadingChange ?
+              "Loading..."
               :
               alertSubscriber?.emails.includes(userEmail) ?
-                <BellRing/>
+                "Unfollow to Alert"
                 :
-                <Bell/>
+                "Follow to Alert"
           }
-        </div>
-        <div className={onBellOver ? "underline": ""}>
-          {alertSubscriber?.emails.includes(userEmail) ? "Unfollow" : "Follow"} to Alert
-        </div>
+        </Button>
       </CardFooter>
     </Card>
   )

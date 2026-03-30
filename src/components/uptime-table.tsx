@@ -5,6 +5,7 @@ import { FileConfig } from "@/services/config-files";
 import { AlertSubscriber, PrometheusMetricQueryValuesResponse, PrometheusQueryResponse, Scrape } from "@/types/prometheus";
 import { getAlertSubscriber, getAlertSubscriberConfig, getHTTPResponse } from "@/services/prometheus";
 import UptimeBarChart from "./uptime-bar-chart";
+import { AddWebsiteButton } from "./add-website-button";
 
 export function UptimeTable({ userEmail }: {userEmail: string}) {
   const [scrapFileConfig, setScrapFileConfig] = useState(new FileConfig("scrapes"));
@@ -33,15 +34,18 @@ export function UptimeTable({ userEmail }: {userEmail: string}) {
   }, [])
   return (
     <div>
+      <div className="mb-4 flex justify-end">
+        <AddWebsiteButton/>
+      </div>
       {
-        uptimes?.data.result.map((site) =>
+        uptimes?.data.result.map((website) =>
           <UptimeBarChart
-            key={site.metric.instance}
-            site={site}
+            key={website.metric.instance}
+            website={website}
             alertSubscriber={
               alertSubscribers?.filter((alert) => {
                 const matcher = alert.targetReceiver?.matchers?.filter((matcher) => matcher.includes("instance="))[0];
-                return matcher?.substring(matcher?.indexOf('"') + 1, matcher?.lastIndexOf('"')) === site.metric.instance;
+                return matcher?.substring(matcher?.indexOf('"') + 1, matcher?.lastIndexOf('"')) === website.metric.instance;
               }
               )[0]
             }
