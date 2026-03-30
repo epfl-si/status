@@ -29,7 +29,7 @@ export default async function Uptime() {
 
   return (
     <div className="container mx-auto px-6 py-12 max-w-6xl">
-      <UptimeTable/>
+      <UptimeTable userEmail={user.email}/>
     </div>
   );
 }

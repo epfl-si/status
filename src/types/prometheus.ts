@@ -58,3 +58,40 @@ export interface PrometheusQueryResponse{
     resultType: string,
   }
 }
+
+export interface AlertRoute{
+  receiver: string | null,
+  group_by: string[],
+  matchers: string[]
+}
+
+export interface AlertReceiverEmailConfig{
+  to: string,
+  headers: {
+    Subject: string,
+  },
+  text: string,
+}
+
+export interface AlertReceiver{
+  name: string,
+  email_configs: AlertReceiverEmailConfig[]
+}
+
+export interface Alert{
+  global?: any,
+  route: {
+    group_wait: string,
+    group_interval: string,
+    repeat_interval: string,
+    receiver: string,
+    routes: AlertRoute[]
+  },
+  receivers: AlertReceiver[]
+}
+
+export interface AlertSubscriber{
+  name: string,
+  targetReceiver: AlertRoute,
+  emails: string[]
+}

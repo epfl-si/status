@@ -13,7 +13,7 @@ export class FileConfig{
   };
 
   getFileContent = async() => {
-    const content = await getFileConfigContent(this.src);
+    const content = await getFileConfigContent(this.src) as Scrape;
     this.content = content;
     return content;
   };

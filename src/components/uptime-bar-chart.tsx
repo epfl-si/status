@@ -7,6 +7,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -16,8 +17,10 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart"
-import { PrometheusMetricQueryResponse, PrometheusMetricQueryValuesResponse } from "@/types/prometheus"
+import { AlertSubscriber, PrometheusMetricQueryResponse, PrometheusMetricQueryValuesResponse } from "@/types/prometheus"
 import { Badge } from "./ui/badge"
+import { Bell, BellMinus, BellOff, BellPlus, BellRing } from "lucide-react"
+import { followAlert, unfollowAlert } from "@/services/prometheus"
 
 const chartConfig = {
   views: {
@@ -29,10 +32,12 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export default function UptimeBarChart({ site }: {site: PrometheusMetricQueryResponse }) {
+export default function UptimeBarChart({ site, alertSubscriber, userEmail }: {site: PrometheusMetricQueryResponse, alertSubscriber: AlertSubscriber | undefined, userEmail: string }) {
 
   const [siteUrl, setSiteUrl] = useState(site?.metric.instance);
   const [chartData, setChartData] = useState<PrometheusMetricQueryValuesResponse[] | undefined>(site?.values);
+
+  const [onBellOver, setOnBellOver] = useState(false);
 
   useEffect(() => {
     setChartDataFormat(chartData?.map((data) => (
@@ -42,7 +47,10 @@ export default function UptimeBarChart({ site }: {site: PrometheusMetricQueryRes
       responseCode: data.httpStatusCode,
       responseTime: Number(data.httpResponse) * 1000
     }
-  )))
+    )))
+    console.log(alertSubscriber?.emails.includes(userEmail))
+    console.log(alertSubscriber?.emails)
+    console.log(userEmail)
   }, [chartData])
 
   const [charDataFormat, setChartDataFormat] = useState(chartData?.map((data) => (
@@ -54,8 +62,18 @@ export default function UptimeBarChart({ site }: {site: PrometheusMetricQueryRes
     }
   )));
 
+  const manageAlert = async (receiverName: string, email: string) => {
+    const isSubscribe = alertSubscriber?.emails.includes(userEmail);
+    if (isSubscribe) {
+      await unfollowAlert(receiverName, email);
+    }
+    else {
+      await followAlert(receiverName, email);
+    }
+  };
+
   return (
-    <Card className="py-0">
+    <Card className="py-0 mb-4">
       <CardHeader className="flex flex-col items-stretch border-b p-0! sm:flex-row">
         <div className="flex flex-1 flex-col justify-center gap-1 px-6 pt-4 pb-3 sm:py-0!">
           <CardTitle>{siteUrl}</CardTitle>
@@ -122,6 +140,28 @@ export default function UptimeBarChart({ site }: {site: PrometheusMetricQueryRes
           </BarChart>
         </ChartContainer>
       </CardContent>
+      <CardFooter className="cursor-pointer"
+        onMouseEnter={() => setOnBellOver(true)}
+        onMouseLeave={() => setOnBellOver(false)}
+        onClick={() => manageAlert(alertSubscriber?.name || "", userEmail)}>
+        <div>
+          {
+            onBellOver ?
+              alertSubscriber?.emails.includes(userEmail) ?
+                <BellMinus />
+                :
+                <BellPlus />
+              :
+              alertSubscriber?.emails.includes(userEmail) ?
+                <BellRing/>
+                :
+                <Bell/>
+          }
+        </div>
+        <div className={onBellOver ? "underline": ""}>
+          {alertSubscriber?.emails.includes(userEmail) ? "Unfollow" : "Follow"} to Alert
+        </div>
+      </CardFooter>
     </Card>
   )
 }
