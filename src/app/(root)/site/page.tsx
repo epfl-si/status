@@ -1,4 +1,3 @@
-import { getTranslations } from "next-intl/server";
 import { auth, getUser } from "@/services/auth";
 import { UptimeTable } from "@/components/uptime-table";
 
@@ -20,16 +19,13 @@ function parseAccred(accred: string): ParsedAccred {
 }
 
 export default async function Uptime() {
-  const translations = {
-    dashboard: await getTranslations("pages.dashboard"),
-  };
   const [session, user] = await Promise.all([auth(), getUser()]);
 
   const parsedAccreds = (user.accreds ?? []).map(parseAccred);
 
   return (
     <div className="container mx-auto px-6 py-12 max-w-6xl">
-      <UptimeTable userEmail={user.email}/>
+      <UptimeTable user={user} />
     </div>
   );
 }

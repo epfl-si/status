@@ -1,5 +1,7 @@
 import { configFiles, files, Scrape } from "@/types/prometheus";
-import { getFileConfigContent, editFileConfigContent, addWebsiteToFileConfigContent } from "./prometheus";
+import { getFileConfigContent, editFileConfigContent, addWebsiteToFileConfigContent, removeWebsiteToFileConfigContent } from "./prometheus";
+import { error } from "console";
+import { User } from "next-auth";
 
 export class FileConfig{
   type: configFiles;
@@ -24,11 +26,34 @@ export class FileConfig{
     return yamlContent;
   };
 
-  addWebsite = async (website: string) => {
+  addWebsite = async (website: string, user: User) => {
     const src = this.src;
     const content = this.content;
     const type = this.type;
-    await addWebsiteToFileConfigContent({src, content, website, type})
+    let success = false;
+    try {
+      await addWebsiteToFileConfigContent({ src, content, website, type, user })
+      success = true;
+    }
+    catch {
+      success = false;
+    }
+    return {success, website}
+  };
+
+  removeWebsite = async (website: string, user: User) => {
+    const src = this.src;
+    const content = this.content;
+    const type = this.type;
+    let success = false;
+    try {
+      await removeWebsiteToFileConfigContent({ src, content, website, type, user })
+      success = true;
+    }
+    catch {
+      success = false;
+    }
+    return {success, website}
   };
 
 }

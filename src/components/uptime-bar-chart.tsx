@@ -25,6 +25,10 @@ import { Button } from "./ui/button"
 import { Spinner } from "./ui/spinner"
 
 import { toast } from "sonner"
+import DeleteWebsiteButton from "./delete-website-button"
+import { FileConfig } from "@/services/config-files"
+import { useTranslations } from "next-intl"
+import { User, UserInfo } from "next-auth"
 
 const chartConfig = {
   views: {
@@ -36,7 +40,13 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export default function UptimeBarChart({ website, alertSubscriber, userEmail }: {website: PrometheusMetricQueryResponse, alertSubscriber: AlertSubscriber | undefined, userEmail: string }) {
+export default function UptimeBarChart({ website, alertSubscriber, user, scrapFileConfig }: {website: PrometheusMetricQueryResponse, alertSubscriber: AlertSubscriber | undefined, user: User, scrapFileConfig: FileConfig }) {
+
+  const translations = {
+    site: useTranslations("pages.site"),
+    uptime: useTranslations("pages.site.uptime"),
+    alert: useTranslations("pages.site.uptime.alert"),
+  };
 
   const [websiteUrl, setWebsiteUrl] = useState(website?.metric.instance);
   const [chartData, setChartData] = useState<PrometheusMetricQueryValuesResponse[] | undefined>(website?.values);
@@ -53,9 +63,6 @@ export default function UptimeBarChart({ website, alertSubscriber, userEmail }: 
       responseTime: Number(data.httpResponse) * 1000
     }
     )))
-    console.log(alertSubscriber?.emails.includes(userEmail))
-    console.log(alertSubscriber?.emails)
-    console.log(userEmail)
   }, [chartData])
 
   const [charDataFormat, setChartDataFormat] = useState(chartData?.map((data) => (
@@ -69,7 +76,7 @@ export default function UptimeBarChart({ website, alertSubscriber, userEmail }: 
 
   const manageAlert = async (receiverName: string, email: string) => {
     setLoadingChange(true);
-    const isSubscribe = alertSubscriber?.emails.includes(userEmail);
+    const isSubscribe = alertSubscriber?.emails.includes(user?.email as string);
     let data;
     if (isSubscribe) {
       data = await unfollowAlert(receiverName, email);
@@ -87,17 +94,17 @@ export default function UptimeBarChart({ website, alertSubscriber, userEmail }: 
         <div className="flex flex-1 flex-col justify-center gap-1 px-6 pt-4 pb-3 sm:py-0!">
           <CardTitle>{websiteUrl}</CardTitle>
           <CardDescription>
-            Le status sur les 30 dernières minutes
+            {translations.uptime("description")}
           </CardDescription>
         </div>
         <div>{
           parseInt(website.values[website.values.length - 1].httpStatus) === 1 ?
             <Badge className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
-              UP
+              {translations.uptime("up")}
             </Badge>
             :
             <Badge className="bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300">
-              DOWN
+              {translations.uptime("down")}
             </Badge>
         }</div>
       </CardHeader>
@@ -121,26 +128,12 @@ export default function UptimeBarChart({ website, alertSubscriber, userEmail }: 
               axisLine={false}
               tickMargin={8}
               minTickGap={32}
-              // tickFormatter={(value) => {
-              //   return new Date(value).toLocaleTimeString("fr-FR", {
-              //     hour: "numeric",
-              //     minute: "numeric",
-              //     second: "numeric"
-              //   })
-              // }}
             />
             <ChartTooltip
               content={
                 <ChartTooltipContent
                   className="w-[150px]"
                   nameKey="views"
-                  // labelFormatter={(value) => {
-                  //   return new Date(value as string).toLocaleDateString("en-US", {
-                  //     month: "short",
-                  //     day: "numeric",
-                  //     year: "numeric",
-                  //   })
-                  // }}
                 />
               }
               formatter={(value) => `${(value as Number).toFixed(2)} ms`}
@@ -149,49 +142,55 @@ export default function UptimeBarChart({ website, alertSubscriber, userEmail }: 
           </BarChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="cursor-pointer mb-2">
-      <Button disabled={loadingChange} size="sm"
-        onMouseEnter={() => setOnBellOver(true)}
-        onMouseLeave={() => setOnBellOver(false)}
-          onClick={() => {
-            toast.promise<{ isActionFollow: boolean, website: string, success: boolean }>(
-              () =>
-                new Promise(async(resolve) =>{
-                  const data = await manageAlert(alertSubscriber?.name || "", userEmail);
-                  resolve(data);
-                }),
-              {
-                loading: "Loading...",
-                success: (data) => {setLoadingChange(false); return `You're now ${data.isActionFollow ? "follow" : "unfollow"} to alerts of ${data.website}`},
-                error: "Error",
-              }
-              )
-            }}>
-          {
-            loadingChange ?
-              <Spinner data-icon="inline-start" />
-              :
-              onBellOver ?
-                alertSubscriber?.emails.includes(userEmail) ?
-                  <BellMinus />
-                  :
-                  <BellPlus />
+      <CardFooter className="cursor-pointer mb-2 flex justify-between">
+        <Button disabled={loadingChange} size="sm"
+          onMouseEnter={() => setOnBellOver(true)}
+          onMouseLeave={() => setOnBellOver(false)}
+            onClick={() => {
+              toast.promise<{ isActionFollow: boolean, website: string, success: boolean }>(
+                () =>
+                  new Promise(async(resolve) =>{
+                    const data = await manageAlert(alertSubscriber?.name || "", userEmail);
+                    resolve(data);
+                  }),
+                {
+                  loading: translations.alert("loadingMessage"),
+                  success: (data) => { setLoadingChange(false); return translations.alert("successMessage", {isFollow: JSON.stringify(data.isActionFollow), website: data.website})},
+                  error: translations.alert("errorMessage"),
+                }
+                )
+              }}>
+            {
+              loadingChange ?
+                <Spinner data-icon="inline-start" />
                 :
-                alertSubscriber?.emails.includes(userEmail) ?
-                  <BellRing/>
+                onBellOver ?
+                  alertSubscriber?.emails.includes(user?.email as string) ?
+                    <BellMinus />
+                    :
+                    <BellPlus />
                   :
-                  <Bell/>
-          }
-          {
-            loadingChange ?
-              "Loading..."
-              :
-              alertSubscriber?.emails.includes(userEmail) ?
-                "Unfollow to Alert"
+                  alertSubscriber?.emails.includes(user?.email as string) ?
+                    <BellRing/>
+                    :
+                    <Bell/>
+            }
+            {
+              loadingChange ?
+                translations.alert("loadingMessage")
                 :
-                "Follow to Alert"
-          }
+                alertSubscriber?.emails.includes(user?.email as string) ?
+                  translations.alert("unfollow")
+                  :
+                  translations.alert("follow")
+            }
         </Button>
+        {
+          (user as UserInfo).groups?.includes("status-admins_AppGrpU") ?
+            <DeleteWebsiteButton website={website?.metric.instance} scrapFileConfig={scrapFileConfig} user={user} />
+            :
+            <></>
+        }
       </CardFooter>
     </Card>
   )

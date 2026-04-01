@@ -27,34 +27,52 @@
   "pages": {
     "home": {
       "title": "Status",
-      "subtitle": "A production-ready foundation for EPFL applications",
-      "description": "Everything you need to build secure, multilingual, and modern web apps at EPFL — authentication, i18n, UI components, and Docker deployment included.",
-      "featureAuth": "Entra ID Authentication",
-      "featureAuthDesc": "SSO via Microsoft Entra ID with JWT sessions and automatic token refresh.",
-      "featureI18n": "Internationalization",
-      "featureI18nDesc": "French and English support with next-intl and cookie-based locale persistence.",
-      "featureUi": "Modern UI",
-      "featureUiDesc": "Tailwind CSS v4, shadcn/ui components, and the Suisse Intl typeface.",
-      "featureDocker": "Docker & CI/CD",
-      "featureDockerDesc": "Standalone Next.js output in a multi-stage Bun Dockerfile with GitHub Actions.",
-      "cta": "Go to Dashboard",
-      "ctaSignin": "Sign in to access the Dashboard"
+      "subtitle": "A simple solution to monitoring website applications.",
+      "cta": "Go to Status page",
+      "ctaSignin": "Sign in to access the Status page"
     },
-    "dashboard": {
-      "title": "Dashboard",
-      "subtitle": "Inspect your session, groups and accreditations.",
-      "fieldName": "Full name",
-      "fieldEmail": "Email",
-      "fieldUsername": "GASPAR username",
-      "fieldUserId": "Unique ID",
-      "groups": "Groups",
-      "accreds": "Accreditations",
-      "noGroups": "No groups assigned.",
-      "noAccreds": "No accreditations found.",
-      "rawSession": "Raw session",
-      "accredUnit": "Unit",
-      "accredPath": "Path",
-      "accredId": "ID"
+    "site": {
+      "search": "Search...",
+      "addWebsite": "Add a website",
+      "uptime": {
+        "up": "UP",
+        "down": "DOWN",
+        "description": "Website status from latest 30 minutes",
+        "delete": "Delete the website",
+        "alert": {
+          "follow": "Follow to alert",
+          "unfollow": "Unfollow to alert",
+          "loadingMessage": "Loading...",
+          "successMessage": "You're now {isFollow, select, true {follow} other {unfollow}} to alerts of {website}",
+          "errorMessage": "Error"
+        },
+        "website": {
+          "add": {
+            "trigger": "Add a website",
+            "title": "Add a website",
+            "description": "Put the link for the website you want to create an uptime and an alert.",
+            "url": "url",
+            "subAlert": "Subscribe to alert",
+            "confirm": "Save Changes",
+            "cancel": "Cancel",
+            "loadingMessage": "Loading...",
+            "successMessage": "The following website is added to the config: \"{website}\"",
+            "errorMessage": "Error, all field need to be filled"
+          },
+          "delete": {
+            "trigger": "Delete the website",
+            "title": "Delete the website",
+            "description": "Are you sure to want to delete the following website : \"{website}\" ? This action cannot be undo.",
+            "confirm": "Confirm",
+            "cancel": "Cancel",
+            "loadingMessage": "Loading...",
+            "successMessage": "The following website is removed from the config : \"{website}\"",
+            "errorMessage": "Error, please retry"
+          }
+        }
+      },
+      "loadingMessage": "Loading...",
+      "noResult": "No result for \"{search}\""
     },
     "footer": {
       "gethelp": "Get help",

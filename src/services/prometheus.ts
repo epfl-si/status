@@ -1,6 +1,7 @@
 "use server";
 
-import { Alert, AlertSubscriber, apiUrl, configFiles, files, PrometheusMetricQueryValuesResponse, PrometheusQueryResponse, Scrape } from "@/types/prometheus";
+import { Alert, AlertReceiver, AlertRoute, AlertSubscriber, apiUrl, configFiles, files, PrometheusMetricQueryValuesResponse, PrometheusQueryResponse, Scrape } from "@/types/prometheus";
+import { User, UserInfo } from "next-auth";
 import { promises as fs } from "node:fs";
 import { parse, stringify } from "yaml";
 
@@ -15,12 +16,65 @@ export const editFileConfigContent = async ({ src, content }: { src: string, con
   return isWrited;
 };
 
-export const addWebsiteToFileConfigContent = async ({ src, content, website, type }: { src: string, content: Scrape, website: string, type: configFiles }) => {
+export const addWebsiteToFileConfigContent = async ({ src, content, website, type, user }: { src: string, content: Scrape, website: string, type: configFiles, user: User }) => {
   const websites = content.scrape_configs[0].static_configs[0].targets;
-  websites.push(website)
-  content.scrape_configs[0].static_configs[0].targets = websites;
-  await editFileConfigContent({ src, content });
-  await refreshConfig(type);
+  if (!content.scrape_configs[0].static_configs[0].targets.includes(website) && (user as UserInfo).groups?.includes("status-admins_AppGrpU")) {
+    websites.push(website)
+    content.scrape_configs[0].static_configs[0].targets = websites;
+    await editFileConfigContent({ src, content });
+
+    const alertConfigSrc = files.alert;
+    const alertConfig: Alert = await getFileConfigContent(alertConfigSrc);
+    const host = new URL(website).hostname.replaceAll(".", "-")
+    const receiver = `status-${host}`;
+    const alertRoute: AlertRoute = {
+      receiver,
+      group_by: ["instance"],
+      matchers: [`instance="${website}"`]
+    }
+    const alertReceiver: AlertReceiver = {
+      name: receiver,
+      email_configs: [
+        {
+          to: `${user.email || ""}`,
+          headers: {
+            Subject: `Highly urgent... Please look ASAP !! (${receiver})`
+          },
+          text: "{ { . CommonAnnotations. summary } } "
+        }
+      ]
+    }
+    alertConfig.route.routes.push(alertRoute);
+    alertConfig.receivers.push(alertReceiver);
+    await editFileConfigContent({ src: files.alert, content: alertConfig });
+
+    await refreshConfig(type);
+    await refreshConfig("alert");
+  }
+};
+
+export const removeWebsiteToFileConfigContent = async ({ src, content, website, type, user }: { src: string, content: Scrape, website: string, type: configFiles, user: User }) => {
+  let websites = content.scrape_configs[0].static_configs[0].targets;
+  if (content.scrape_configs[0].static_configs[0].targets.includes(website) && (user as UserInfo).groups?.includes("status-admins_AppGrpU")) {
+    websites = websites.filter((w) => w !== website);
+    content.scrape_configs[0].static_configs[0].targets = websites;
+    await editFileConfigContent({ src, content });
+
+    const alertConfigSrc = files.alert;
+    const alertConfig: Alert = await getFileConfigContent(alertConfigSrc);
+    const host = new URL(website).hostname.replaceAll(".", "-")
+    const receiver = `status-${host}`;
+
+    const newAlertRoutes = alertConfig.route.routes.filter((route) => route.receiver !== receiver);
+    alertConfig.route.routes = newAlertRoutes;
+
+    const newAlertReceivers = alertConfig.receivers.filter((r) => r.name !== receiver)
+    alertConfig.receivers = newAlertReceivers;
+    await editFileConfigContent({ src: files.alert, content: alertConfig });
+
+    await refreshConfig(type);
+    await refreshConfig("alert");
+  }
 };
 
 const refreshConfig = async (type: configFiles) => {
@@ -147,11 +201,8 @@ export const unfollowAlert = async (receiverName: string, email: string) => {
   const receiver = alertConfig.receivers.filter((receiver) => receiver.name === receiverName)[0];
   if (receiver.email_configs.map((email_config) => email_config.to)[0].includes(email)) {
     let email_configs_array = receiver.email_configs[0].to.replaceAll(" ", "").split(',');
-    console.log(email_configs_array)
     email_configs_array = email_configs_array.filter((mail) => mail !== email);
-    console.log(email_configs_array)
     receiver.email_configs.filter((email_config) => email_config.to.includes(email))[0].to = email_configs_array.join(", ");
-    console.log(receiver.email_configs)
 
     await editFileConfigContent({ src: alertConfigSrc, content: alertConfig });
     await refreshConfig("alert");
