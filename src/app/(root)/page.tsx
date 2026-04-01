@@ -1,4 +1,4 @@
-import { ArrowRight, Container, Globe, Layers, ShieldCheck } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
@@ -42,7 +42,6 @@ export default async function Home() {
           />
         </div>
       </section>
-
     </div>
   );
 }

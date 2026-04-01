@@ -1,49 +1,74 @@
 "use server";
 
-import { Alert, AlertReceiver, AlertRoute, AlertSubscriber, apiUrl, configFiles, files, PrometheusMetricQueryValuesResponse, PrometheusQueryResponse, Scrape } from "@/types/prometheus";
-import { User, UserInfo } from "next-auth";
 import { promises as fs } from "node:fs";
+import type { User, UserInfo } from "next-auth";
 import { parse, stringify } from "yaml";
+import {
+  type Alert,
+  type AlertReceiver,
+  type AlertRoute,
+  type AlertSubscriber,
+  apiUrl,
+  type configFiles,
+  files,
+  type PrometheusQueryResponse,
+  type Scrape,
+} from "@/types/prometheus";
 
-export const getFileConfigContent = async(src: string) => {
+export const getFileConfigContent = async (src: string) => {
   const file = await fs.readFile(`${process.cwd()}/${src}`, "utf8");
   return parse(file);
 };
 
-export const editFileConfigContent = async ({ src, content }: { src: string, content: object }) => {
+export const editFileConfigContent = async ({ src, content }: { src: string; content: object }) => {
   const yamlContent = stringify(content);
   const isWrited = await fs.writeFile(`${process.cwd()}/${src}`, yamlContent, "utf8");
   return isWrited;
 };
 
-export const addWebsiteToFileConfigContent = async ({ src, content, website, type, user }: { src: string, content: Scrape, website: string, type: configFiles, user: User }) => {
+export const addWebsiteToFileConfigContent = async ({
+  src,
+  content,
+  website,
+  type,
+  user,
+}: {
+  src: string;
+  content: Scrape;
+  website: string;
+  type: configFiles;
+  user: User;
+}) => {
   const websites = content.scrape_configs[0].static_configs[0].targets;
-  if (!content.scrape_configs[0].static_configs[0].targets.includes(website) && (user as UserInfo).groups?.includes("status-admins_AppGrpU")) {
-    websites.push(website)
+  if (
+    !content.scrape_configs[0].static_configs[0].targets.includes(website) &&
+    (user as UserInfo).groups?.includes("status-admins_AppGrpU")
+  ) {
+    websites.push(website);
     content.scrape_configs[0].static_configs[0].targets = websites;
     await editFileConfigContent({ src, content });
 
     const alertConfigSrc = files.alert;
     const alertConfig: Alert = await getFileConfigContent(alertConfigSrc);
-    const host = new URL(website).hostname.replaceAll(".", "-")
+    const host = new URL(website).hostname.replaceAll(".", "-");
     const receiver = `status-${host}`;
     const alertRoute: AlertRoute = {
       receiver,
       group_by: ["instance"],
-      matchers: [`instance="${website}"`]
-    }
+      matchers: [`instance="${website}"`],
+    };
     const alertReceiver: AlertReceiver = {
       name: receiver,
       email_configs: [
         {
           to: `${user.email || ""}`,
           headers: {
-            Subject: `Highly urgent... Please look ASAP !! (${receiver})`
+            Subject: `Highly urgent... Please look ASAP !! (${receiver})`,
           },
-          text: "{ { . CommonAnnotations. summary } } "
-        }
-      ]
-    }
+          text: "{ { . CommonAnnotations. summary } } ",
+        },
+      ],
+    };
     alertConfig.route.routes.push(alertRoute);
     alertConfig.receivers.push(alertReceiver);
     await editFileConfigContent({ src: files.alert, content: alertConfig });
@@ -53,22 +78,37 @@ export const addWebsiteToFileConfigContent = async ({ src, content, website, typ
   }
 };
 
-export const removeWebsiteToFileConfigContent = async ({ src, content, website, type, user }: { src: string, content: Scrape, website: string, type: configFiles, user: User }) => {
+export const removeWebsiteToFileConfigContent = async ({
+  src,
+  content,
+  website,
+  type,
+  user,
+}: {
+  src: string;
+  content: Scrape;
+  website: string;
+  type: configFiles;
+  user: User;
+}) => {
   let websites = content.scrape_configs[0].static_configs[0].targets;
-  if (content.scrape_configs[0].static_configs[0].targets.includes(website) && (user as UserInfo).groups?.includes("status-admins_AppGrpU")) {
+  if (
+    content.scrape_configs[0].static_configs[0].targets.includes(website) &&
+    (user as UserInfo).groups?.includes("status-admins_AppGrpU")
+  ) {
     websites = websites.filter((w) => w !== website);
     content.scrape_configs[0].static_configs[0].targets = websites;
     await editFileConfigContent({ src, content });
 
     const alertConfigSrc = files.alert;
     const alertConfig: Alert = await getFileConfigContent(alertConfigSrc);
-    const host = new URL(website).hostname.replaceAll(".", "-")
+    const host = new URL(website).hostname.replaceAll(".", "-");
     const receiver = `status-${host}`;
 
     const newAlertRoutes = alertConfig.route.routes.filter((route) => route.receiver !== receiver);
     alertConfig.route.routes = newAlertRoutes;
 
-    const newAlertReceivers = alertConfig.receivers.filter((r) => r.name !== receiver)
+    const newAlertReceivers = alertConfig.receivers.filter((r) => r.name !== receiver);
     alertConfig.receivers = newAlertReceivers;
     await editFileConfigContent({ src: files.alert, content: alertConfig });
 
@@ -78,7 +118,7 @@ export const removeWebsiteToFileConfigContent = async ({ src, content, website, 
 };
 
 const refreshConfig = async (type: configFiles) => {
-  const url = apiUrl[type] + "/-/reload";
+  const url = `${apiUrl[type]}/-/reload`;
   if (url) {
     await fetch(url.toString(), { method: "POST" });
   }
@@ -87,9 +127,11 @@ const refreshConfig = async (type: configFiles) => {
 export const PrometheusAPIQueryCall = async (query: string) => {
   const baseUrl = process.env.PROMETHEUS_API_URL;
   const url = `${baseUrl}/api/v1/query?query=${query}`;
-  const jsonResponse: PrometheusQueryResponse = await fetch(url.toString(), { method: "GET" }).then((response) => response.json());
+  const jsonResponse: PrometheusQueryResponse = await fetch(url.toString(), { method: "GET" }).then((response) =>
+    response.json(),
+  );
   return jsonResponse;
-}
+};
 
 export const getCurrentMsResponse = async () => {
   const duration = 30; // in minutes
@@ -121,25 +163,21 @@ export const getHTTPResponse = async () => {
   response.data.result = metricsDataArray.map((result, index) => {
     const httpStatusMetrics = httpStatus.data.result[index].values;
     const httpStatusCodeMetrics = httpStatusCode.data.result[index].values;
-    return (
-      {
-        ...result,
-        values: result.values.map((val) => {
-          const status = httpStatusMetrics.filter((metric) => metric[0] == val[0])[0][1];
-          const statusCode = httpStatusCodeMetrics.filter((metric) => metric[0] == val[0])[0][1];
-          const datetime = new Date(val[0] as number * 1000);
-          return (
-            {
-              timestamp: val[0] as number,
-              httpResponse: val[1],
-              httpStatus: status,
-              httpStatusCode: statusCode,
-              datetime
-            }
-          )
-        })
-      }
-    )
+    return {
+      ...result,
+      values: result.values.map((val) => {
+        const status = httpStatusMetrics.filter((metric) => metric[0] === val[0])[0][1];
+        const statusCode = httpStatusCodeMetrics.filter((metric) => metric[0] === val[0])[0][1];
+        const datetime = new Date((val[0] as number) * 1000);
+        return {
+          timestamp: val[0] as number,
+          httpResponse: val[1],
+          httpStatus: status,
+          httpStatusCode: statusCode,
+          datetime,
+        };
+      }),
+    };
   });
 
   return response;
@@ -159,13 +197,11 @@ export const getAlertSubscriberConfig = async () => {
 
 export const getAlertSubscriber = async () => {
   const alertConfig: Alert = await getAlertSubscriberConfig();
-  const alertSubscriberWithReceivers: AlertSubscriber[] = alertConfig.receivers.map((receiver) => (
-    {
-      name: receiver.name,
-      targetReceiver: alertConfig.route.routes.filter((route) => route.receiver === receiver.name)[0],
-      emails: receiver.email_configs.map((config) => config.to.replaceAll(" ", "").split(",")).flat(),
-    }
-  ));
+  const alertSubscriberWithReceivers: AlertSubscriber[] = alertConfig.receivers.map((receiver) => ({
+    name: receiver.name,
+    targetReceiver: alertConfig.route.routes.filter((route) => route.receiver === receiver.name)[0],
+    emails: receiver.email_configs.flatMap((config) => config.to.replaceAll(" ", "").split(",")),
+  }));
   return alertSubscriberWithReceivers;
 };
 
@@ -177,7 +213,7 @@ export const followAlert = async (receiverName: string, email: string) => {
 
   const receiver = alertConfig.receivers.filter((receiver) => receiver.name === receiverName)[0];
   if (!receiver.email_configs.map((email_config) => email_config.to)[0].includes(email)) {
-    const email_configs_array = receiver.email_configs[0].to.replaceAll(" ", "").split(',');
+    const email_configs_array = receiver.email_configs[0].to.replaceAll(" ", "").split(",");
     email_configs_array.push(email);
     receiver.email_configs[0].to = email_configs_array.join(", ");
 
@@ -200,9 +236,10 @@ export const unfollowAlert = async (receiverName: string, email: string) => {
 
   const receiver = alertConfig.receivers.filter((receiver) => receiver.name === receiverName)[0];
   if (receiver.email_configs.map((email_config) => email_config.to)[0].includes(email)) {
-    let email_configs_array = receiver.email_configs[0].to.replaceAll(" ", "").split(',');
+    let email_configs_array = receiver.email_configs[0].to.replaceAll(" ", "").split(",");
     email_configs_array = email_configs_array.filter((mail) => mail !== email);
-    receiver.email_configs.filter((email_config) => email_config.to.includes(email))[0].to = email_configs_array.join(", ");
+    receiver.email_configs.filter((email_config) => email_config.to.includes(email))[0].to =
+      email_configs_array.join(", ");
 
     await editFileConfigContent({ src: alertConfigSrc, content: alertConfig });
     await refreshConfig("alert");

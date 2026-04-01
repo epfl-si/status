@@ -1,9 +1,13 @@
-import { configFiles, files, Scrape } from "@/types/prometheus";
-import { getFileConfigContent, editFileConfigContent, addWebsiteToFileConfigContent, removeWebsiteToFileConfigContent } from "./prometheus";
-import { error } from "console";
-import { User } from "next-auth";
+import type { User } from "next-auth";
+import { type configFiles, files, type Scrape } from "@/types/prometheus";
+import {
+  addWebsiteToFileConfigContent,
+  editFileConfigContent,
+  getFileConfigContent,
+  removeWebsiteToFileConfigContent,
+} from "./prometheus";
 
-export class FileConfig{
+export class FileConfig {
   type: configFiles;
   src: string;
   content: Scrape;
@@ -12,17 +16,17 @@ export class FileConfig{
     this.type = filetype;
     this.src = files[filetype];
     this.content = {} as Scrape;
-  };
+  }
 
-  getFileContent = async() => {
-    const content = await getFileConfigContent(this.src) as Scrape;
+  getFileContent = async () => {
+    const content = (await getFileConfigContent(this.src)) as Scrape;
     this.content = content;
     return content;
   };
 
   editFileContent = async (content: Scrape) => {
     const src = this.src;
-    const yamlContent = await editFileConfigContent({src, content});
+    const yamlContent = await editFileConfigContent({ src, content });
     return yamlContent;
   };
 
@@ -32,13 +36,12 @@ export class FileConfig{
     const type = this.type;
     let success = false;
     try {
-      await addWebsiteToFileConfigContent({ src, content, website, type, user })
+      await addWebsiteToFileConfigContent({ src, content, website, type, user });
       success = true;
-    }
-    catch {
+    } catch {
       success = false;
     }
-    return {success, website}
+    return { success, website };
   };
 
   removeWebsite = async (website: string, user: User) => {
@@ -47,13 +50,11 @@ export class FileConfig{
     const type = this.type;
     let success = false;
     try {
-      await removeWebsiteToFileConfigContent({ src, content, website, type, user })
+      await removeWebsiteToFileConfigContent({ src, content, website, type, user });
       success = true;
-    }
-    catch {
+    } catch {
       success = false;
     }
-    return {success, website}
+    return { success, website };
   };
-
 }

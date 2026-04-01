@@ -1,15 +1,31 @@
 import { Trash } from "lucide-react";
-import { Button } from "./ui/button";
-import { FileConfig } from "@/services/config-files";
-import { toast } from "sonner"
+import type { User } from "next-auth";
 import { useTranslations } from "next-intl";
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
-import { Field } from "./ui/field";
 import { useState } from "react";
-import { User } from "next-auth";
+import { toast } from "sonner";
+import type { FileConfig } from "@/services/config-files";
+import { Button } from "./ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog";
+import { Field } from "./ui/field";
 
-export default function DeleteWebsiteButton({ website, scrapFileConfig, user }: { website: string, scrapFileConfig: FileConfig, user: User }) {
-
+export default function DeleteWebsiteButton({
+  website,
+  scrapFileConfig,
+  user,
+}: {
+  website: string;
+  scrapFileConfig: FileConfig;
+  user: User;
+}) {
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
 
   const translations = {
@@ -17,23 +33,25 @@ export default function DeleteWebsiteButton({ website, scrapFileConfig, user }: 
   };
 
   const deleteWebsite = async () => {
-    toast.promise<{success: boolean, website: string}>(
+    toast.promise<{ success: boolean; website: string }>(
       () =>
-        new Promise(async (resolve) => {
+        new Promise((resolve) => {
           try {
-            const success = await scrapFileConfig.removeWebsite(website, user);
+            const success = scrapFileConfig.removeWebsite(website, user);
             resolve(success);
-          }
-          catch (error){
+          } catch (error) {
             console.error(error);
           }
         }),
       {
         loading: translations.websiteDelete("loadingMessage"),
-        success: (data) => { setIsDialogOpen(false); return translations.websiteDelete("successMessage", { website: data.website })},
+        success: (data) => {
+          setIsDialogOpen(false);
+          return translations.websiteDelete("successMessage", { website: data.website });
+        },
         error: translations.websiteDelete("errorMessage"),
-      }
-    )
+      },
+    );
   };
 
   return (
@@ -47,19 +65,19 @@ export default function DeleteWebsiteButton({ website, scrapFileConfig, user }: 
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>{translations.websiteDelete("title")}</DialogTitle>
-          <DialogDescription>
-            {translations.websiteDelete("description", {website})}
-          </DialogDescription>
+          <DialogDescription>{translations.websiteDelete("description", { website })}</DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Field orientation="horizontal">
             <DialogClose asChild>
               <Button variant="outline">{translations.websiteDelete("cancel")}</Button>
             </DialogClose>
-            <Button onClick={() => deleteWebsite()} form="form-website-add">{translations.websiteDelete("confirm")}</Button>
+            <Button onClick={() => deleteWebsite()} form="form-website-add">
+              {translations.websiteDelete("confirm")}
+            </Button>
           </Field>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

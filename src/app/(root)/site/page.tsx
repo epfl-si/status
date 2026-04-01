@@ -1,5 +1,5 @@
-import { auth, getUser } from "@/services/auth";
 import { UptimeTable } from "@/components/uptime-table";
+import { auth, getUser } from "@/services/auth";
 
 type ParsedAccred = {
   id: string;
@@ -19,9 +19,9 @@ function parseAccred(accred: string): ParsedAccred {
 }
 
 export default async function Uptime() {
-  const [session, user] = await Promise.all([auth(), getUser()]);
+  const [_session, user] = await Promise.all([auth(), getUser()]);
 
-  const parsedAccreds = (user.accreds ?? []).map(parseAccred);
+  const _parsedAccreds = (user.accreds ?? []).map(parseAccred);
 
   return (
     <div className="container mx-auto px-6 py-12 max-w-6xl">

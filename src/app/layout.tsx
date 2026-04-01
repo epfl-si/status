@@ -6,10 +6,9 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 export const dynamic = "force-dynamic";
 
+import { Toaster } from "@/components/ui/sonner";
 import { SessionProvider } from "@/providers/session";
 import { auth } from "@/services/auth";
-
-import { Toaster } from "@/components/ui/sonner"
 
 const suisse = localFont({
   src: [
