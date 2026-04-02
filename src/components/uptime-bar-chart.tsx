@@ -1,7 +1,7 @@
 "use client";
 
 import { Bell, BellMinus, BellPlus, BellRing } from "lucide-react";
-import type { User, UserInfo } from "next-auth";
+import type { User } from "next-auth";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
@@ -35,11 +35,13 @@ export default function UptimeBarChart({
   alertSubscriber,
   user,
   scrapFileConfig,
+  isAutorized,
 }: {
   website: PrometheusMetricQueryResponse;
   alertSubscriber: AlertSubscriber | undefined;
   user: User;
   scrapFileConfig: FileConfig;
+  isAutorized: boolean | undefined;
 }) {
   const translations = {
     site: useTranslations("pages.site"),
@@ -130,7 +132,7 @@ export default function UptimeBarChart({
           </BarChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="cursor-pointer mb-2 flex justify-between">
+      <CardFooter className="mb-2 flex justify-between">
         <Button
           disabled={loadingChange}
           size="sm"
@@ -176,7 +178,7 @@ export default function UptimeBarChart({
               ? translations.alert("unfollow")
               : translations.alert("follow")}
         </Button>
-        {(user as UserInfo).groups?.includes("status-admins_AppGrpU") ? (
+        {isAutorized ? (
           <DeleteWebsiteButton website={website?.metric.instance} scrapFileConfig={scrapFileConfig} user={user} />
         ) : (
           <></>

@@ -41,7 +41,7 @@ route:
 receivers:
   - name: 'status-admin'
     email_configs:
-    - to: 'email@epfl.ch, email+statusadmin@epfl.ch'
+    - to: 'status-admin@epfl.ch'
       headers :
         Subject: '(admin) Highly urgent... Please look ASAP !!'
       text: '{ { . CommonAnnotations. summary } } '

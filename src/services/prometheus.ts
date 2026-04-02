@@ -40,10 +40,8 @@ export const addWebsiteToFileConfigContent = async ({
   user: User;
 }) => {
   const websites = content.scrape_configs[0].static_configs[0].targets;
-  if (
-    !content.scrape_configs[0].static_configs[0].targets.includes(website) &&
-    (user as UserInfo).groups?.includes("status-admins_AppGrpU")
-  ) {
+  const authorized = await isAuthorized(user as UserInfo);
+  if (!content.scrape_configs[0].static_configs[0].targets.includes(website) && authorized) {
     websites.push(website);
     content.scrape_configs[0].static_configs[0].targets = websites;
     await editFileConfigContent({ src, content });
@@ -92,10 +90,8 @@ export const removeWebsiteToFileConfigContent = async ({
   user: User;
 }) => {
   let websites = content.scrape_configs[0].static_configs[0].targets;
-  if (
-    content.scrape_configs[0].static_configs[0].targets.includes(website) &&
-    (user as UserInfo).groups?.includes("status-admins_AppGrpU")
-  ) {
+  const authorized = await isAuthorized(user as UserInfo);
+  if (content.scrape_configs[0].static_configs[0].targets.includes(website) && authorized) {
     websites = websites.filter((w) => w !== website);
     content.scrape_configs[0].static_configs[0].targets = websites;
     await editFileConfigContent({ src, content });
@@ -250,4 +246,9 @@ export const unfollowAlert = async (receiverName: string, email: string) => {
   const website = matcher?.substring(matcher?.indexOf('"') + 1, matcher?.lastIndexOf('"'));
 
   return { isActionFollow: false, website, success };
+};
+
+export const isAuthorized = async (user: UserInfo) => {
+  const adminGroups = process.env.ADMIN_GROUPS?.split(",");
+  return adminGroups?.map((group) => user?.groups.includes(group)).includes(true);
 };

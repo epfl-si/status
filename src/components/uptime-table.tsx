@@ -5,7 +5,7 @@ import type { User, UserInfo } from "next-auth";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { FileConfig } from "@/services/config-files";
-import { getAlertSubscriber, getHTTPResponse } from "@/services/prometheus";
+import { getAlertSubscriber, getHTTPResponse, isAuthorized } from "@/services/prometheus";
 import type { AlertSubscriber, PrometheusQueryResponse } from "@/types/prometheus";
 import AddWebsiteButton from "./add-website-button";
 import { Field } from "./ui/field";
@@ -23,6 +23,7 @@ export function UptimeTable({ user }: { user: User }) {
   const [uptimes, setUptimes] = useState<PrometheusQueryResponse>();
   const [alertSubscribers, setAlertSubscribers] = useState<AlertSubscriber[]>();
   const [search, setSearch] = useState<string>(searchParams.has("url") ? searchParams.get("url") || "" : "");
+  const [authorized, setAuthorized] = useState<boolean | undefined>(false);
 
   useEffect(() => {
     const call = async () => {
@@ -31,9 +32,11 @@ export function UptimeTable({ user }: { user: User }) {
       setUptimes(httpResponse);
       const subscribers = await getAlertSubscriber();
       setAlertSubscribers(subscribers);
+      const isAccessRight = await isAuthorized(user as UserInfo);
+      setAuthorized(isAccessRight);
     };
     call();
-  }, [scrapFileConfig.getFileContent]);
+  }, [scrapFileConfig.getFileContent, user]);
   return (
     <div>
       <div className="mb-4 flex justify-between">
@@ -45,11 +48,7 @@ export function UptimeTable({ user }: { user: User }) {
             onChange={(e) => setSearch(e.target.value)}
           />
         </Field>
-        {(user as UserInfo).groups?.includes("status-admins_AppGrpU") ? (
-          <AddWebsiteButton user={user} scrapFileConfig={scrapFileConfig} />
-        ) : (
-          <></>
-        )}
+        {authorized ? <AddWebsiteButton user={user} scrapFileConfig={scrapFileConfig} /> : <></>}
       </div>
       {uptimes || search.length !== 0 ? (
         uptimes?.data.result.filter(
@@ -67,6 +66,7 @@ export function UptimeTable({ user }: { user: User }) {
               <UptimeBarChart
                 key={website.metric.instance}
                 website={website}
+                isAutorized={authorized}
                 alertSubscriber={
                   alertSubscribers?.filter((alert) => {
                     const matcher = alert.targetReceiver?.matchers?.filter((matcher) =>
