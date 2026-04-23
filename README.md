@@ -1,3 +1,5 @@
+
+
 # Status — EPFL SI
 
 >[!NOTE]
@@ -5,120 +7,121 @@
 
 A simple next.js monitoring solution based on Prometheus.
 
-## Features
+# Summary
+<!-- First install "Markdwon all ine one" extension by Yu Zhang. Put after theses lines, ctrl + shift + p and write "Markdown" and click to "Markdwon all ine one: Create table of Content" -->
+- [Status — EPFL SI](#status--epfl-si)
+- [Summary](#summary)
+- [Requirements](#requirements)
+- [Getting Started](#getting-started)
+  - [Clone the projet](#clone-the-projet)
+  - [Edit Alertmanager config](#edit-alertmanager-config)
+  - [Launch Docker compose](#launch-docker-compose)
+  - [Define environment variables](#define-environment-variables)
+  - [Launch Web Application (dev mode)](#launch-web-application-dev-mode)
+- [Launch unit test](#launch-unit-test)
+- [Deploy with Kubernetes](#deploy-with-kubernetes)
 
-- **Authentication** — SSO via Microsoft Entra ID (Auth.js v5), JWT sessions with automatic token refresh. User profile enriched from the EPFL userinfo API (`groups`, `accreds`).
-- **Internationalization** — French and English with [next-intl](https://next-intl-docs.vercel.app/), cookie-based locale persistence.
-- **UI** — Tailwind CSS v4, shadcn/ui components, Suisse Intl typeface.
-- **Code quality** — [Biome](https://biomejs.dev/) for linting and formatting.
-- **Docker** — Multi-stage Bun + Node.js Dockerfile with standalone Next.js output.
-- **CI/CD** — GitHub Actions: lint check, Docker build & push to GHCR, automatic GitHub Release on version bump.
 
-## Requirements
+# Requirements
 
 - [Bun](https://bun.sh/) ≥ 1.2
 - A Microsoft Entra ID app registration with the following redirect URI: `http://localhost:3000/api/auth/callback/microsoft-entra-id`
 - Access rights to the team `epfl_status` in keybase
+- Be member of group "status-admins" in groups.epfl.ch
 
-## Getting Started
+# Getting Started
 
-```bash
-bun install
+## Clone the projet
+
+First, to use the projet locally, you need to clone the projet
+Here the command below.
+
+```sh
+git clone git@github.com:epfl-si/status.git
+cd status # Go to the root of the project
+```
+
+## Edit Alertmanager config
+
+First, you need to get secrets for email credentials.
+
+Move to `/devkit/alertmanager`
+
+Copy `config.yml.example` and rename it to `config.yml`
+
+In this YML file, there is at the top, a "global" attributes with smtp variables as below
+```yml
+global:
+  smtp_smarthost: ''
+  smtp_auth_username: ''
+  smtp_auth_password: ''
+  smtp_require_tls: true
+  smtp_from: '' # smtp_from have the same value as smtp_auth_username
+```
+
+Fill empty values with secrets from following files : `/keybase/team/epfl_status/secrets.yaml`
+
+## Launch Docker compose
+
+Now,to have Prometheus, Alertmanager and Blackbox Exporter containers, you need to move to the devkit folder and to start the docker compose as below.
+
+```sh
+cd devkit # Go to the /devkit
+docker compose up -d
+```
+
+## Define environment variables
+
+Before starting the web application, copy the `.env.example` and rename it `.env.local`.
+
+```sh
+cd .. # Go back to the root of the project
 cp .env.example .env.local
-# fill in .env.local
+vi .env.local # fill in .env.local using nano, vi, vim, or your favorite text editor
+```
+
+The file look like this
+
+```sh
+AUTH_SECRET=
+ENTRA_ID=
+ENTRA_SECRET=
+ENTRA_ISSUER=https://login.microsoftonline.com/<tenant-id>/v2.0
+PROMETHEUS_API_URL="http://localhost:9090"
+ALERTMANAGER_API_URL="http://localhost:9093"
+BLACKBOX_API_URL="http://localhost:9115"
+ADMIN_GROUPS="status-admin_AppGrpU" # Separated by a comma without space, like "<group_name>_AppGrpU,<group_name_2>_AppGrpU"
+```
+
+Then, replace and fill variables with correct values.
+
+>[!NOTE]
+> All theses secrets can be find to the team `epfl_status` folder in keybase (`secrets.yaml` file)
+
+| Variable | Description |
+| --- | --- |
+| **AUTH_SECRET** | Change with a random secret for Auth.js session encryption (`openssl rand -base64 32`) |
+| **ENTRA_ID** | Change with EntraID application (client) ID |
+| **ENTRA_SECRET** | Change with EntraID client secret |
+| **ENTRA_ISSUER** | Change `<tenant-id>` with your tenant id in `https://login.microsoftonline.com/<tenant-id>/v2.0** |
+| **PROMETHEUS_API_URL** | Change only on test / prod environment. Keep it with devkit usage |
+| **ALERTMANAGER_API_URL** | Change only on test / prod environment. Keep it with devkit usage |
+| **BLACKBOX_API_URL** | Change only on test / prod environment. Keep it with devkit usage |
+| **ADMIN_GROUPS** | Don't need to be changes since this group exist |
+
+
+## Launch Web Application (dev mode)
+
+Finally, you can install all dependencies and start the web application by using theses commands.
+
+```sh
+cd .. # Go back to the root of the project if you're not yet
+bun install
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+You can open and use the web application at [http://localhost:3000](http://localhost:3000).
 
-## Environment Variables
+# Launch unit test
 
-| Variable | Description |
-|---|---|
-| `AUTH_SECRET` | Random secret for Auth.js session encryption (`openssl rand -base64 32`) |
-| `ENTRA_ID` | EntraID application (client) ID |
-| `ENTRA_SECRET` | EntraID client secret |
-| `ENTRA_ISSUER` | `https://login.microsoftonline.com/<tenant-id>/v2.0` |
-
->[!NOTE]
-> all theses secrets can be find to the team `epfl_status` folder in keybase (`secrets.yaml` file)
-
-## Scripts
-
-| Command | Description |
-|---|---|
-| `bun dev` | Start development server |
-| `bun build` | Build for production |
-| `bun start` | Start production server |
-| `bun lint` | Run Biome checks |
-| `bun format` | Auto-format with Biome |
-
-## Project Structure
-
-```
-src/
-├── app/
-│   ├── (root)/           # Pages with header + footer
-│   │   ├── page.tsx      # Home page
-│   │   └── dashboard/    # Protected dashboard (groups, accreds, raw session)
-│   ├── api/auth/         # Auth.js route handlers
-│   ├── error.tsx         # Global error boundary
-│   └── not-found.tsx     # 404 page
-├── components/
-│   ├── header.tsx        # Navigation bar
-│   ├── footer.tsx        # EPFL footer
-│   └── ui/               # shadcn/ui components
-├── constants/
-│   ├── i18n.ts           # Supported locales
-│   └── routes.ts         # Protected route patterns
-├── messages/
-│   ├── en.json           # English translations
-│   └── fr.json           # French translations
-├── services/
-│   ├── auth.ts           # Auth.js + EPFL userinfo integration
-│   └── locale.ts         # Cookie-based locale management
-├── types/
-│   └── next-auth.d.ts    # NextAuth type extensions
-├── i18n.ts               # next-intl request config
-└── proxy.ts              # Middleware for protected routes
-```
-
-## Protected Routes
-
-Routes defined in `src/constants/routes.ts` redirect unauthenticated users to the sign-in page. Currently `/dashboard` and all sub-paths are protected.
-
-To add a new protected route:
-
-```ts
-// src/constants/routes.ts
-export const PROTECTED_ROUTES = {
-  DASHBOARD: { path: /^\/dashboard(\/.*)?$/ },
-  MY_ROUTE:  { path: /^\/my-route(\/.*)?$/ },
-};
-```
-
-## Adding UI Components
-
-This project uses [shadcn/ui](https://ui.shadcn.com/). Add components with:
-
-```bash
-bunx shadcn add <component>
-```
-
-## Docker
-
-```bash
-docker build -t status .
-docker run -p 3000:3000 --env-file .env.local status
-```
-
-## CI/CD
-
-The GitHub Actions workflow (`.github/workflows/build.yml`) runs on every push to `main`:
-
-1. **Code Quality** — Biome lint check, uploads report as artifact.
-2. **Detect Version** — Reads `version` from `package.json`; skips build if a release with that version already exists.
-3. **Build and Push** — Builds the Docker image and pushes to GHCR (`ghcr.io/<owner>/<repo>`).
-4. **Create Release** — Creates a GitHub Release with auto-generated notes from conventional commit messages.
-
-To trigger a new release, bump the version in `package.json` and push to `main`.
+# Deploy with Kubernetes

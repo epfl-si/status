@@ -3,7 +3,7 @@ global:
   smtp_auth_username: ''
   smtp_auth_password: ''
   smtp_require_tls: true
-  smtp_from: ''
+  smtp_from: '' # smtp_from have the same value as smtp_auth_username
 
 route:
   # When a new group of alerts is created by an incoming alert, wait at
