@@ -50,7 +50,7 @@ export function UptimeTable({ user }: { user: User }) {
         </Field>
         {authorized ? <AddWebsiteButton user={user} scrapFileConfig={scrapFileConfig} /> : <></>}
       </div>
-      {uptimes || search.length !== 0 ? (
+      {uptimes || (uptimes && search.length !== 0) ? (
         uptimes?.data.result.filter(
           (website) =>
             scrapFileConfig.content.scrape_configs[0].static_configs[0].targets.includes(website?.metric.instance) &&
