@@ -161,9 +161,9 @@ export const getHTTPResponse = async () => {
     const httpStatusCodeMetrics = httpStatusCode.data.result[index].values;
     return {
       ...result,
-      values: result.values.map((val) => {
-        const status = httpStatusMetrics.filter((metric) => metric[0] === val[0])[0][1];
-        const statusCode = httpStatusCodeMetrics.filter((metric) => metric[0] === val[0])[0][1];
+      values: result.values.map((val: any) => {
+        const status = (httpStatusMetrics as any).filter((metric: [][]) => metric[0] === val[0])[0][1];
+        const statusCode = (httpStatusCodeMetrics as any).filter((metric: [][]) => metric[0] === val[0])[0][1];
         const datetime = new Date((val[0] as number) * 1000);
         return {
           timestamp: val[0] as number,
