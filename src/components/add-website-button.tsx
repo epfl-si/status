@@ -50,12 +50,13 @@ export default function AddWebsiteButton({ user, scrapFileConfig }: { user: User
 
   function onSubmit(data: z.infer<typeof formSchema>) {
     const website = data.url;
+    const isSub = data.wantToSub;
     toast.promise<{ website: string; success: boolean }>(
       () =>
         new Promise((resolve) => {
           try {
             scrapFileConfig.getFileContent();
-            const data = scrapFileConfig.addWebsite(website, user);
+            const data = scrapFileConfig.addWebsite(website, user, isSub);
             resolve(data);
           } catch (error) {
             console.error(error);

@@ -19,57 +19,39 @@ route:
   # resend them.
   repeat_interval: 2h
   # A default receiver
-  receiver: 'status-admin'
-
+  receiver: status-admins
   routes:
     - receiver: null
       matchers:
         - severity=none
-
-    - receiver: 'status-uptime-websiteforalertingtest'
-      group_by: ['instance']
+    - receiver: status-unexist-epfl-ch
+      group_by:
+        - instance
       matchers:
-        # - service="httpdown"
-        - instance="https://websiteforalertingtest.com"
-
-    - receiver: 'status-example'
-      group_by: ['instance']
+        - instance="https://unexist.epfl.ch"
+    - receiver: status-eeee-epfl-ch
+      group_by:
+        - instance
       matchers:
-        # - service="sslexpiry"
-        - instance="https://example.com"
+        - instance="https://eeee.epfl.ch"
 
 receivers:
-  - name: 'status-admin'
+  - name: status-admins
     email_configs:
-    - to: 'status-admin@epfl.ch'
-      headers :
-        Subject: '(admin) Highly urgent... Please look ASAP !!'
-      text: '{ { . CommonAnnotations. summary } } '
+      - to: status-admins@epfl.ch
+        headers:
+          Subject: /!\ Alert - {{ .GroupLabels.instance }} is down, please look ASAP
+        text: "{{ .CommonAnnotations.summary }}"
+  - name: status-unexist-epfl-ch
+    email_configs:
+      - to: ""
+        headers:
+          Subject: /!\ Alert - {{ .GroupLabels.instance }} is down, please look ASAP
+        text: "{{ .CommonAnnotations.summary }}"
+  - name: status-eeee-epfl-ch
+    email_configs:
+      - to: ""
+        headers:
+          Subject: /!\ Alert - {{ .GroupLabels.instance }} is down, please look ASAP
+        text: "{{ .CommonAnnotations.summary }}"
 
-  - name: 'status-uptime-all'
-    email_configs:
-    - to: 'email@epfl.ch, email+statusuptimeall@epfl.ch'
-      headers :
-        Subject: '(uptime) Highly urgent... Please look ASAP !!'
-      text: '{ { . CommonAnnotations. summary } } '
-
-  - name: 'status-uptime-websiteforalertingtest'
-    email_configs:
-    - to: 'email@epfl.ch, email+statusuptimewebsiteforalertingtest@epfl.ch'
-      headers :
-        Subject: '{{ if eq .Status "firing" }}[{{ .GroupLabels.instance }}] Alert - {{ .GroupLabels.servidor }} - {{ .GroupLabels.alertname }} {{ else if eq .Status "resolved" }}[{{ .GroupLabels.environment }}] Recovery - {{ .GroupLabels.servidor }} - {{ .GroupLabels.alertname }}{{end}}'
-      text: '{ { . CommonAnnotations. summary } } '
-
-  - name: 'status-example'
-    email_configs:
-    - to: 'email@epfl.ch, email+statusexample@epfl.ch'
-      headers :
-        Subject: '(uptime) Highly urgent... Please look ASAP !!'
-      text: '{ { . CommonAnnotations. summary } } '
-
-  - name: 'status-ssl'
-    email_configs:
-    - to: 'email@epfl.ch, email+statusssl@epfl.ch'
-      headers :
-        Subject: '(ssl) Highly urgent... Please look ASAP !!'
-      text: '{ { . CommonAnnotations. summary } } '

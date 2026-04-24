@@ -32,12 +32,14 @@ export const addWebsiteToFileConfigContent = async ({
   website,
   type,
   user,
+  isSub
 }: {
   src: string;
   content: Scrape;
   website: string;
   type: configFiles;
   user: User;
+  isSub: boolean;
 }) => {
   const websites = content.scrape_configs[0].static_configs[0].targets;
   const authorized = await isAuthorized(user as UserInfo);
@@ -59,11 +61,11 @@ export const addWebsiteToFileConfigContent = async ({
       name: receiver,
       email_configs: [
         {
-          to: `${user.email || ""}`,
+          to: `${isSub ? user.email : ""}`,
           headers: {
-            Subject: `Highly urgent... Please look ASAP !! (${receiver})`,
+            Subject: `/!\\ Alert - {{ .GroupLabels.instance }} is down, please look ASAP`,
           },
-          text: "{ { . CommonAnnotations. summary } } ",
+          text: "{{ .CommonAnnotations.summary }}",
         },
       ],
     };

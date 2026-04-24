@@ -6,8 +6,8 @@ scrape_configs:
         - http_2xx
     static_configs:
       - targets:
-          - https://example.com
-          - https://websiteforalertingtest.com
+          - https://unexist.epfl.ch
+          - https://eeee.epfl.ch
     relabel_configs:
       - source_labels:
           - __address__
