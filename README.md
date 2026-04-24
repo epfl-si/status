@@ -15,12 +15,11 @@ A simple next.js monitoring solution based on Prometheus.
 - [Getting Started](#getting-started)
   - [Clone the projet](#clone-the-projet)
   - [Edit Alertmanager config](#edit-alertmanager-config)
-  - [Launch Docker compose](#launch-docker-compose)
+  - [Launch Docker compose (dev kit)](#launch-docker-compose-dev-kit)
   - [Define environment variables](#define-environment-variables)
   - [Launch Web Application (dev mode)](#launch-web-application-dev-mode)
 - [Launch unit test](#launch-unit-test)
 - [Deploy with Kubernetes](#deploy-with-kubernetes)
-
 
 # Requirements
 
@@ -61,13 +60,21 @@ global:
 
 Fill empty values with secrets from following files : `/keybase/team/epfl_status/secrets.yaml`
 
-## Launch Docker compose
+## Launch Docker compose (dev kit)
 
 Now,to have Prometheus, Alertmanager and Blackbox Exporter containers, you need to move to the devkit folder and to start the docker compose as below.
 
 ```sh
 cd devkit # Go to the /devkit
-docker compose up -d
+docker compose up -d # Start the docker compose
+```
+
+If you want to restart the Dev kit, just stop and restart the docker compose by using theses following commands
+
+```sh
+cd devkit # Go to the /devkit if you're not already
+docker compose down # Stop the docker compose
+docker compose up -d # Start the docker compose
 ```
 
 ## Define environment variables

@@ -32,7 +32,7 @@
       "ctaSignin": "Sign in to access the Status page"
     },
     "site": {
-      "search": "Search...",
+      "search": "Search for an URL... (minimum 3 characters)",
       "addWebsite": "Add a website",
       "uptime": {
         "up": "UP",

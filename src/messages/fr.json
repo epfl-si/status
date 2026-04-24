@@ -32,7 +32,7 @@
       "ctaSignin": "Connectez-vous pour accéder à la page de statut"
     },
     "site": {
-      "search": "Rechercher...",
+      "search": "Rechercher l'URL d'un site... (minimum 3 caractères)",
       "addWebsite": "Ajouter un site",
       "uptime": {
         "up": "EN LIGNE",
@@ -41,7 +41,7 @@
         "delete": "Supprimer le site",
         "alert": {
           "follow": "S'abonner à l'alerte",
-          "unfollow": "De désabonner à l'alerte",
+          "unfollow": "Se désabonner à l'alerte",
           "loadingMessage": "Chargement...",
           "successMessage": "Tu es désormais {isFollow, select, true {abonné} other {désabonné}} aux alertes du site {website}",
           "errorMessage": "Erreur"
