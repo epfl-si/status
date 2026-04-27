@@ -2,10 +2,11 @@ name: Build and Release
 
 on:
     push:
-        branches: [main]
+        branches: [ main ]
 
 env:
-    REGISTRY_PATH: ghcr.io/${{ github.repository }}
+    REPOSITORY: "quay-its.epfl.ch"
+    REGISTRY_PATH: "quay-its.epfl.ch/svc0041/status"
     FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
@@ -67,7 +68,7 @@ jobs:
 
     build-and-push:
         name: Build and Push
-        needs: [code-quality, detect-version]
+        needs: [ code-quality, detect-version ]
         if: needs.detect-version.outputs.should_build == 'true'
         runs-on: ubuntu-24.04
         permissions:
@@ -81,9 +82,9 @@ jobs:
 
             - uses: docker/login-action@v4
               with:
-                  registry: ghcr.io
-                  username: ${{ github.actor }}
-                  password: ${{ secrets.GITHUB_TOKEN }}
+                  registry: ${{ env.REPOSITORY }}
+                  username: ${{ secrets.QUAY_ROBOT_USERNAME }}
+                  password: ${{ secrets.QUAY_ROBOT_PASSWORD }}
 
             - uses: docker/metadata-action@v6
               id: meta
@@ -108,7 +109,7 @@ jobs:
 
     create-release:
         name: Create Release
-        needs: [detect-version, build-and-push]
+        needs: [ detect-version, build-and-push ]
         if: needs.build-and-push.outputs.build_success == 'true'
         runs-on: ubuntu-24.04
         permissions:
