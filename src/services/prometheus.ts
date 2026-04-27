@@ -211,9 +211,10 @@ export const followAlert = async (receiverName: string, email: string) => {
 
   const receiver = alertConfig.receivers.filter((receiver) => receiver.name === receiverName)[0];
   if (!receiver.email_configs.map((email_config) => email_config.to)[0].includes(email)) {
-    const email_configs_array = receiver.email_configs[0].to.replaceAll(" ", "").split(",");
+    let email_configs_array = receiver.email_configs[0].to.replaceAll(" ", "").split(",");
     email_configs_array.push(email);
-    receiver.email_configs[0].to = email_configs_array.join(", ");
+    email_configs_array = email_configs_array.filter((email) => email.length > 3 && email != "")
+    receiver.email_configs[0].to = email_configs_array.length <= 1 ? email_configs_array[0] : email_configs_array.join(",");
 
     await editFileConfigContent({ src: alertConfigSrc, content: alertConfig });
     await refreshConfig("alert");

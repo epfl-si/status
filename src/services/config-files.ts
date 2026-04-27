@@ -37,6 +37,7 @@ export class FileConfig {
     let success = false;
     try {
       await addWebsiteToFileConfigContent({ src, content, website, type, user, isSub });
+      await this.getFileContent();
       success = true;
     } catch {
       success = false;
