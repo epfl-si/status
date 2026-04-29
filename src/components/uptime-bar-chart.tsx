@@ -4,7 +4,7 @@ import { Bell, BellMinus, BellPlus, BellRing } from "lucide-react";
 import type { User } from "next-auth";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, XAxis } from "recharts";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
@@ -56,14 +56,19 @@ export default function UptimeBarChart({
   const [loadingChange, setLoadingChange] = useState(false);
 
   useEffect(() => {
-    setChartDataFormat(
-      chartData?.map((data) => ({
-        timestamp: data.timestamp,
-        time: `${data.datetime.getHours()}:${data.datetime.getMinutes().toString().length === 1 ? `0${data.datetime.getMinutes()}` : data.datetime.getMinutes()}`,
-        responseCode: data.httpStatusCode,
-        responseTime: Number(data.httpResponse) * 1000,
-      })),
-    );
+    setChartDataFormat([
+      ...new Map(
+        chartData
+          ?.map((data) => ({
+            timestamp: data.timestamp,
+            time: `${data.datetime.getHours()}:${data.datetime.getMinutes().toString().length === 1 ? `0${data.datetime.getMinutes()}` : data.datetime.getMinutes()}`,
+            responseCode: data.httpStatusCode,
+            responseTime: Number(data.httpResponse) * 1000,
+            barHeight: 50,
+          }))
+          .map((item) => [item.time, item]),
+      ).values(),
+    ]);
   }, [chartData]);
 
   const [charDataFormat, setChartDataFormat] = useState(
@@ -72,6 +77,7 @@ export default function UptimeBarChart({
       time: `${data.datetime.getHours()}:${data.datetime.getMinutes().toString().length === 1 ? `0${data.datetime.getMinutes()}` : data.datetime.getMinutes()}`,
       responseCode: data.httpStatusCode,
       responseTime: Number(data.httpResponse) * 1000,
+      barHeight: 50,
     })),
   );
 
@@ -128,7 +134,14 @@ export default function UptimeBarChart({
               content={<ChartTooltipContent className="w-[150px]" nameKey="views" />}
               formatter={(value) => `${(value as number).toFixed(2)} ms`}
             />
-            <Bar dataKey={"responseTime"} fill={`var(--color-responseTime)`} />
+            <Bar dataKey={"responseTime"} fill={`var(--color-responseTime)`} height={5}>
+              {charDataFormat?.map((data) => (
+                <Cell
+                  key={data.timestamp}
+                  fill={parseInt(data.responseCode) < 200 || parseInt(data.responseCode) >= 400 ? "#C82909" : "#209C07"}
+                />
+              ))}
+            </Bar>
           </BarChart>
         </ChartContainer>
       </CardContent>
