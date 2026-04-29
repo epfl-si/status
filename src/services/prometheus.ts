@@ -32,14 +32,12 @@ export const addWebsiteToFileConfigContent = async ({
   website,
   type,
   user,
-  isSub,
 }: {
   src: string;
   content: Scrape;
   website: string;
   type: configFiles;
   user: User;
-  isSub: boolean;
 }) => {
   const websites = content.scrape_configs[0].static_configs[0].targets;
   const authorized = await isAuthorized(user as UserInfo);
@@ -47,31 +45,6 @@ export const addWebsiteToFileConfigContent = async ({
     websites.push(website);
     content.scrape_configs[0].static_configs[0].targets = websites;
     await editFileConfigContent({ src, content });
-
-    const alertConfigSrc = files.alert;
-    const alertConfig: Alert = await getFileConfigContent(alertConfigSrc);
-    const host = new URL(website).hostname.replaceAll(".", "-");
-    const receiver = `status-${host}`;
-    const alertRoute: AlertRoute = {
-      receiver,
-      group_by: ["instance"],
-      matchers: [`instance="${website}"`],
-    };
-    const alertReceiver: AlertReceiver = {
-      name: receiver,
-      email_configs: [
-        {
-          to: `${isSub ? user.email : ""}`,
-          headers: {
-            Subject: `/!\\ Alert - {{ .GroupLabels.instance }} is down, please look ASAP`,
-          },
-          text: "{{ .CommonAnnotations.summary }}",
-        },
-      ],
-    };
-    alertConfig.route.routes.push(alertRoute);
-    alertConfig.receivers.push(alertReceiver);
-    await editFileConfigContent({ src: files.alert, content: alertConfig });
 
     await refreshConfig(type);
     await refreshConfig("alert");
@@ -114,6 +87,128 @@ export const removeWebsiteToFileConfigContent = async ({
     await refreshConfig("alert");
   }
 };
+
+export const createAlert = async ({
+  selectedProbeType,
+  website,
+  user
+}: {
+  selectedProbeType: string;
+  website: string;
+  user: User;
+}) => {
+  let success = false;
+  try {
+    // Get alertConfig file src, and get the configuration
+    const alertConfigSrc = files.alert;
+    const alertConfig: Alert = await getFileConfigContent(alertConfigSrc);
+
+    // stop process if an alert for same usage already exist
+    if (
+      alertConfig.receivers.map((receiver) => receiver.name).filter((receiver) => receiver.includes(selectedProbeType))
+        .length >= 1
+    ) {
+      return {success,}
+    }
+
+    // Generate content for new alerts
+    const host = new URL(website).hostname.replaceAll(".", "-");
+    const receiver = `${selectedProbeType}-${host}`;
+    const alertRoute: AlertRoute = {
+      receiver,
+      group_by: ["instance"],
+      matchers: [`instance="${website}"`, `service="${selectedProbeType}"`],
+    };
+    const alertReceiver: AlertReceiver = {
+      name: receiver,
+      email_configs: [
+        {
+          to: `${user.email}`,
+          headers: {
+            Subject:
+              selectedProbeType === "httpdown"
+                ? "/!\\ Alert - {{ .GroupLabels.instance }} is down, please look ASAP"
+                : selectedProbeType === "sslexpiry"
+                  ? "/!\\ Alert - {{ .GroupLabels.instance }} SSL will expired soon, please look ASAP"
+                  : selectedProbeType === "icmptimeout"
+                    ? "/!\\ Alert - {{ .GroupLabels.instance }} icmp response too long, please look ASAP"
+                    : "/!\\ Alert - {{ .GroupLabels.instance }} have problems, please look ASAP"
+          },
+          text: "{{ .CommonAnnotations.summary }}",
+        },
+      ],
+    };
+
+    // Append changes to new configurations and update it
+    alertConfig.route.routes.push(alertRoute);
+    alertConfig.receivers.push(alertReceiver);
+    await editFileConfigContent({ src: files.alert, content: alertConfig });
+
+    success = true;
+  }
+  catch (error){
+    console.error(error);
+  }
+  return { success };
+}
+
+export const updateAlert = async ({
+  selectedProbeType,
+  website,
+  oldProbeType
+}: {
+  selectedProbeType: string;
+  website: string;
+  oldProbeType: string;
+}) => {
+  let success = false;
+  try {
+    // Get alertConfig file src, and get the configuration
+    const alertConfigSrc = files.alert;
+    const alertConfig: Alert = await getFileConfigContent(alertConfigSrc);
+
+    // Generate content for new alerts
+    const host = new URL(website).hostname.replaceAll(".", "-");
+    const oldReceiverName = `${oldProbeType}-${host}`;
+    const updatedReceiverName = `${selectedProbeType}-${host}`;
+
+    // get id of route and receiver name to update
+    const receiverId = alertConfig.receivers.findIndex((receiver) => receiver.name === oldReceiverName);
+    const routeId = alertConfig.route.routes.findIndex((route) => route.receiver === oldReceiverName);
+    const matcherId = alertConfig.route.routes[routeId].matchers.findIndex((matcher) => matcher.includes("service"));
+
+    // update route and receiver name
+    alertConfig.receivers[receiverId].name = updatedReceiverName;
+    alertConfig.route.routes[routeId].receiver = updatedReceiverName;
+    alertConfig.route.routes[routeId].matchers[matcherId] = alertConfig.route.routes[routeId].matchers[matcherId].replace(oldProbeType, selectedProbeType);
+
+    // Apply changes to config file
+    await editFileConfigContent({ src: files.alert, content: alertConfig });
+  } catch (error){
+    console.error(error);
+  }
+  return { success };
+}
+
+export const deleteAlert = async ({ alertSubscriberName }: { alertSubscriberName: string; }) => {
+  let success = false;
+  try {
+    // Get alertConfig file src, and get the configuration
+    const alertConfigSrc = files.alert;
+    const alertConfig: Alert = await getFileConfigContent(alertConfigSrc);
+
+    // Use filter to keep all receveivers or routes instead ones with alertSubscriberName (=> like a delete)
+    alertConfig.receivers = alertConfig.receivers.filter((receiver) => receiver.name !== alertSubscriberName);
+    alertConfig.route.routes = alertConfig.route.routes.filter((route) => route.receiver !== alertSubscriberName);
+
+    // Apply changes to config file
+    await editFileConfigContent({ src: files.alert, content: alertConfig });
+  }
+  catch (error){
+    console.error(error);
+  }
+  return {success,}
+}
 
 const refreshConfig = async (type: configFiles) => {
   const url = `${apiUrl[type]}/-/reload`;

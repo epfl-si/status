@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, BellMinus, BellPlus, BellRing } from "lucide-react";
+import { Bell, BellMinus, BellOff, BellPlus, BellRing, Settings, Trash } from "lucide-react";
 import type { User } from "next-auth";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
@@ -10,15 +10,29 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import type { FileConfig } from "@/services/config-files";
 import { followAlert, unfollowAlert } from "@/services/prometheus";
-import type {
-  AlertSubscriber,
-  PrometheusMetricQueryResponse,
-  PrometheusMetricQueryValuesResponse,
+import {
+  type AlertSubscriber,
+  ProbeType,
+  type PrometheusMetricQueryResponse,
+  type PrometheusMetricQueryValuesResponse,
 } from "@/types/prometheus";
+import AlertCRUDForm from "./alerts-crud-form";
 import DeleteWebsiteButton from "./delete-website-button";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
-import { Spinner } from "./ui/spinner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuPortal,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 
 const chartConfig = {
   views: {
@@ -32,13 +46,13 @@ const chartConfig = {
 
 export default function UptimeBarChart({
   website,
-  alertSubscriber,
+  alertSubscribers,
   user,
   scrapFileConfig,
   isAutorized,
 }: {
   website: PrometheusMetricQueryResponse;
-  alertSubscriber: AlertSubscriber | undefined;
+  alertSubscribers: AlertSubscriber[] | undefined;
   user: User;
   scrapFileConfig: FileConfig;
   isAutorized: boolean | undefined;
@@ -81,7 +95,7 @@ export default function UptimeBarChart({
     })),
   );
 
-  const manageAlert = async (receiverName: string, email: string) => {
+  const manageAlert = async (alertSubscriber: AlertSubscriber, email: string) => {
     setLoadingChange(true);
     const isSubscribe = alertSubscriber?.emails.includes(user?.email as string);
     interface dataType {
@@ -91,12 +105,33 @@ export default function UptimeBarChart({
     }
     let data: dataType;
     if (isSubscribe) {
-      data = await unfollowAlert(receiverName, email);
+      data = await unfollowAlert(alertSubscriber.name, email);
     } else {
-      data = await followAlert(receiverName, email);
+      data = await followAlert(alertSubscriber.name, email);
     }
     setLoadingChange(false);
     return data;
+  };
+
+  const SubUnsubToAlert = (alertSubscriber: AlertSubscriber) => {
+    toast.promise<{ isActionFollow: boolean; website: string; success: boolean }>(
+      () =>
+        new Promise((resolve) => {
+          const data = manageAlert(alertSubscriber, user?.email as string);
+          resolve(data);
+        }),
+      {
+        loading: translations.alert("loadingMessage"),
+        success: (data) => {
+          setLoadingChange(false);
+          return translations.alert("successMessage", {
+            isFollow: JSON.stringify(data.isActionFollow),
+            website: data.website,
+          });
+        },
+        error: translations.alert("errorMessage"),
+      },
+    );
   };
 
   return (
@@ -131,10 +166,12 @@ export default function UptimeBarChart({
             <CartesianGrid vertical={false} />
             <XAxis dataKey="time" tickLine={false} axisLine={false} tickMargin={8} minTickGap={32} />
             <ChartTooltip
+              // content={<ChartTooltipContent className="w-[150px]" nameKey="views" />}
               content={<ChartTooltipContent className="w-[150px]" nameKey="views" />}
               formatter={(value) => `${(value as number).toFixed(2)} ms`}
             />
             <Bar dataKey={"responseTime"} fill={`var(--color-responseTime)`} height={5}>
+              {/* <Bar dataKey={() => 1} fill={`var(--color-responseTime)`} height={5}> */}
               {charDataFormat?.map((data) => (
                 <Cell
                   key={data.timestamp}
@@ -146,55 +183,98 @@ export default function UptimeBarChart({
         </ChartContainer>
       </CardContent>
       <CardFooter className="mb-2 flex justify-between">
-        <Button
-          disabled={loadingChange}
-          size="sm"
-          onMouseEnter={() => setOnBellOver(true)}
-          onMouseLeave={() => setOnBellOver(false)}
-          onClick={() => {
-            toast.promise<{ isActionFollow: boolean; website: string; success: boolean }>(
-              () =>
-                new Promise((resolve) => {
-                  const data = manageAlert(alertSubscriber?.name || "", user?.email as string);
-                  resolve(data);
-                }),
-              {
-                loading: translations.alert("loadingMessage"),
-                success: (data) => {
-                  setLoadingChange(false);
-                  return translations.alert("successMessage", {
-                    isFollow: JSON.stringify(data.isActionFollow),
-                    website: data.website,
-                  });
-                },
-                error: translations.alert("errorMessage"),
-              },
-            );
-          }}
-        >
-          {loadingChange ? (
-            <Spinner data-icon="inline-start" />
-          ) : onBellOver ? (
-            alertSubscriber?.emails.includes(user?.email as string) ? (
-              <BellMinus />
-            ) : (
-              <BellPlus />
-            )
-          ) : alertSubscriber?.emails.includes(user?.email as string) ? (
-            <BellRing />
-          ) : (
-            <Bell />
-          )}
-          {loadingChange
-            ? translations.alert("loadingMessage")
-            : alertSubscriber?.emails.includes(user?.email as string)
-              ? translations.alert("unfollow")
-              : translations.alert("follow")}
-        </Button>
-        {isAutorized ? (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button size="sm">
+              <Bell />
+              Alerts
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-40" align="start">
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>
+                {alertSubscribers && alertSubscribers?.length >= 1
+                  ? translations.alert("availableAlerts")
+                  : translations.alert("unavailableAlerts")}
+              </DropdownMenuLabel>
+              {alertSubscribers?.map((alertSubscriber) => (
+                <DropdownMenuSub key={alertSubscriber.name}>
+                  <DropdownMenuSubTrigger>
+                    {alertSubscriber.name.includes("http")
+                      ? translations.alert("httpdown")
+                      : alertSubscriber.name.includes("sslexpiry")
+                        ? translations.alert("sslexpiry")
+                        : alertSubscriber.name.includes("icmptimeout")
+                          ? translations.alert("icmptimeout")
+                          : translations.alert("nameNotFound")}
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuPortal>
+                    <DropdownMenuSubContent>
+                      {alertSubscriber?.emails.includes(user?.email as string) ? (
+                        <DropdownMenuItem onClick={() => SubUnsubToAlert(alertSubscriber)}>
+                          <BellOff />
+                          {translations.alert("unfollow")}
+                        </DropdownMenuItem>
+                      ) : (
+                        <DropdownMenuItem onClick={() => SubUnsubToAlert(alertSubscriber)}>
+                          <BellRing />
+                          {translations.alert("follow")}
+                        </DropdownMenuItem>
+                      )}
+                      {isAutorized && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <AlertCRUDForm
+                            action="update"
+                            user={user}
+                            website={website?.metric.instance}
+                            alertSubscribers={alertSubscribers}
+                            alertSubscriberName={alertSubscriber.name}
+                          >
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                              <Settings />
+                              {translations.alert("edit")}
+                            </DropdownMenuItem>
+                          </AlertCRUDForm>
+                          <AlertCRUDForm
+                            action="delete"
+                            user={user}
+                            website={website?.metric.instance}
+                            alertSubscribers={alertSubscribers}
+                            alertSubscriberName={alertSubscriber.name}
+                          >
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                              <Trash />
+                              {translations.alert("delete")}
+                            </DropdownMenuItem>
+                          </AlertCRUDForm>
+                        </>
+                      )}
+                    </DropdownMenuSubContent>
+                  </DropdownMenuPortal>
+                </DropdownMenuSub>
+              ))}
+              {alertSubscribers?.length !== Object.values(ProbeType).length && (
+                <>
+                  <DropdownMenuSeparator />
+                  <AlertCRUDForm
+                    action="create"
+                    user={user}
+                    website={website?.metric.instance}
+                    alertSubscribers={alertSubscribers}
+                  >
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                      <BellPlus />
+                      {translations.alert("create")}
+                    </DropdownMenuItem>
+                  </AlertCRUDForm>
+                </>
+              )}
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        {isAutorized && (
           <DeleteWebsiteButton website={website?.metric.instance} scrapFileConfig={scrapFileConfig} user={user} />
-        ) : (
-          <></>
         )}
       </CardFooter>
     </Card>

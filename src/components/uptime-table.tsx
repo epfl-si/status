@@ -67,17 +67,12 @@ export function UptimeTable({ user }: { user: User }) {
                 key={website.metric.instance}
                 website={website}
                 isAutorized={authorized}
-                alertSubscriber={
-                  alertSubscribers?.filter((alert) => {
-                    const matcher = alert.targetReceiver?.matchers?.filter((matcher) =>
-                      matcher.includes("instance="),
-                    )[0];
-                    return (
-                      matcher?.substring(matcher?.indexOf('"') + 1, matcher?.lastIndexOf('"')) ===
-                      website.metric.instance
-                    );
-                  })[0]
-                }
+                alertSubscribers={alertSubscribers?.filter((alert) => {
+                  const matcher = alert.targetReceiver?.matchers?.filter((matcher) => matcher.includes("instance="))[0];
+                  return (
+                    matcher?.substring(matcher?.indexOf('"') + 1, matcher?.lastIndexOf('"')) === website.metric.instance
+                  );
+                })}
                 user={user}
                 scrapFileConfig={scrapFileConfig}
               />
@@ -88,7 +83,6 @@ export function UptimeTable({ user }: { user: User }) {
       ) : (
         <div>{translations.site("loadingMessage")}</div>
       )}
-      {/* <UptimeBarChart site={currentMsArray?.data.result[0].metric.instance} chartData={currentMsArray?.data.result[0].values as PrometheusMetricQueryValuesResponse[]}/> */}
     </div>
   );
 }

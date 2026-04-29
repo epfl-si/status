@@ -30,13 +30,13 @@ export class FileConfig {
     return yamlContent;
   };
 
-  addWebsite = async (website: string, user: User, isSub: boolean) => {
+  addWebsite = async (website: string, user: User) => {
     const src = this.src;
     const content = this.content;
     const type = this.type;
     let success = false;
     try {
-      await addWebsiteToFileConfigContent({ src, content, website, type, user, isSub });
+      await addWebsiteToFileConfigContent({ src, content, website, type, user });
       await this.getFileContent();
       success = true;
     } catch {

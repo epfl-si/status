@@ -2,12 +2,13 @@ groups:
   - name: SSL_Expiry
     rules:
       - alert: BlackboxSslCertificateWillExpireSoon
-        expr: 0 <= round((last_over_time(probe_ssl_earliest_cert_expiry[10m]) - time()) / 86400, 0.1) < 60
-        for: 0m # dev ? 0m : 1m
-        keep_firing_for: 0m # dev ? 0m : 1m
+        expr: probe_ssl_earliest_cert_expiry - time() < 7*24*3600
+        for: 0m
+        keep_firing_for: 5s
         labels:
           severity: warning
           service: sslexpiry
         annotations:
-          summary: Blackbox SSL certificate will expire soon (instance {{ $labels.instance }})
-          description: "SSL certificate expires in less than 200 days\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+          summary: Certificate for {{ $labels.instance }} is about to expire
+          description: "The certificate for {{ $labels.instance }} is about to expire in
+            less than 7 days."

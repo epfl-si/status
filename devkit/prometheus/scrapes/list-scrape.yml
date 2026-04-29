@@ -4,10 +4,13 @@ scrape_configs:
     params:
       module:
         - http_2xx
+        - icmp
     static_configs:
       - targets:
           - https://unexist.epfl.ch
           - https://eeee.epfl.ch
+          - https://people.epfl.ch/
+          - https://actu.epfl.ch
     relabel_configs:
       - source_labels:
           - __address__

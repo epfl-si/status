@@ -19,7 +19,6 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field
 import { Input } from "@/components/ui/input";
 import type { FileConfig } from "@/services/config-files";
 import { Button } from "./ui/button";
-import { Checkbox } from "./ui/checkbox";
 
 const formSchema = z.object({
   url: z
@@ -30,7 +29,6 @@ const formSchema = z.object({
       /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/gi,
       "URL need to be in a right format.",
     ),
-  wantToSub: z.boolean(),
 });
 
 export default function AddWebsiteButton({ user, scrapFileConfig }: { user: User; scrapFileConfig: FileConfig }) {
@@ -44,19 +42,17 @@ export default function AddWebsiteButton({ user, scrapFileConfig }: { user: User
     resolver: zodResolver(formSchema),
     defaultValues: {
       url: "",
-      wantToSub: false,
     },
   });
 
   function onSubmit(data: z.infer<typeof formSchema>) {
     const website = data.url;
-    const isSub = data.wantToSub;
     toast.promise<{ website: string; success: boolean }>(
       () =>
         new Promise((resolve) => {
           try {
             scrapFileConfig.getFileContent();
-            const data = scrapFileConfig.addWebsite(website, user, isSub);
+            const data = scrapFileConfig.addWebsite(website, user);
             resolve(data);
           } catch (error) {
             console.error(error);
@@ -99,25 +95,6 @@ export default function AddWebsiteButton({ user, scrapFileConfig }: { user: User
                     aria-invalid={fieldState.invalid}
                     required
                   />
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                </Field>
-              )}
-            />
-            <Controller
-              name="wantToSub"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid} orientation={"horizontal"}>
-                  <Checkbox
-                    id="form-website-add-input-wanttosub"
-                    name="wantToSub"
-                    checked={Boolean(field.value)}
-                    onCheckedChange={field.onChange}
-                    className="size-5!"
-                  />
-                  <FieldLabel htmlFor="form-website-add-input-wanttosub">
-                    {translations.websiteAdd("subAlert")}
-                  </FieldLabel>
                   {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                 </Field>
               )}
