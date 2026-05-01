@@ -18,8 +18,10 @@ A simple next.js monitoring solution based on Prometheus.
   - [Launch Docker compose (dev kit)](#launch-docker-compose-dev-kit)
   - [Define environment variables](#define-environment-variables)
   - [Launch Web Application (dev mode)](#launch-web-application-dev-mode)
-- [Launch unit test](#launch-unit-test)
 - [Deploy with Kubernetes](#deploy-with-kubernetes)
+  - [Configure secrets](#configure-secrets)
+  - [Deployment in test](#deployment-in-test)
+  - [Deployment in prod](#deployment-in-prod)
 
 # Requirements
 
@@ -58,7 +60,7 @@ global:
   smtp_from: '' # smtp_from have the same value as smtp_auth_username
 ```
 
-Fill empty values with secrets from following files : `/keybase/team/epfl_status/secrets.yaml`
+Fill empty values with secrets from following files : `/keybase/team/epfl_status/secrets.yml`
 
 ## Launch Docker compose (dev kit)
 
@@ -103,7 +105,7 @@ ADMIN_GROUPS="status-admin_AppGrpU" # Separated by a comma without space, like "
 Then, replace and fill variables with correct values.
 
 >[!NOTE]
-> All theses secrets can be find to the team `epfl_status` folder in keybase (`secrets.yaml` file)
+> All theses secrets can be find to the team `epfl_status` folder in keybase (`secrets.yml` file)
 
 | Variable | Description |
 | --- | --- |
@@ -129,6 +131,38 @@ bun dev
 
 You can open and use the web application at [http://localhost:3000](http://localhost:3000).
 
-# Launch unit test
-
 # Deploy with Kubernetes
+
+## Configure secrets
+
+Duplicate twice `secrets.yaml.exemple` and name it `secrets-test.yaml` and `secrets-test.yaml`
+
+replace all values betwwen "<" and ">" with test or prod values from `keybase`
+
+## Deployment in test
+
+First, push your secrets
+
+```sh
+kubectl apply -f secrets-test.yaml
+```
+
+next, push the deployment configuration
+
+```sh
+kubectl apply -f deployment-test.yaml
+```
+
+## Deployment in prod
+
+First, push your secrets
+
+```sh
+kubectl apply -f secrets-prod.yaml
+```
+
+next, push the deployment configuration
+
+```sh
+kubectl apply -f deployment-prod.yaml
+```
