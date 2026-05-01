@@ -1,0 +1,13 @@
+groups:
+  - name: ICMP_Ping_Delay
+    rules:
+      - alert: BlackboxProbeICMPTimeout
+        expr: probe_icmp_duration_seconds{phase="rtt"} > 0.1
+        for: 0m
+        keep_firing_for: 5s
+        labels:
+          severity: warning
+          service: icmptimeout
+        annotations:
+          summary: Blackbox probe ICMP delay (instance {{ $labels.instance }})
+          description: "ICMP duration time is {{ $value }}"

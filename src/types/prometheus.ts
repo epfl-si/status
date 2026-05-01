@@ -95,3 +95,9 @@ export interface AlertSubscriber {
   targetReceiver: AlertRoute;
   emails: string[];
 }
+
+export const ProbeType = {
+  http: "httpdown",
+  ssl: "sslexpiry",
+  icmp: "icmptimeout",
+};

@@ -14,41 +14,43 @@ route:
   group_wait: 45s
   # When the first notification was sent, wait 'group_interval' to send a batch
   # of new alerts that started firing for that group.
-  group_interval: 10m
+  # group_interval: 10m
   # If an alert has successfully been sent, wait 'repeat_interval' to
   # resend them.
-  repeat_interval: 2h
+  repeat_interval: 5m
   # A default receiver
   receiver: status-admins
   routes:
     - receiver: null
       matchers:
         - severity=none
-    - receiver: status-unexist-epfl-ch
+    - receiver: status-unexist-epfl-ch-httpdown
       group_by:
         - instance
       matchers:
         - instance="https://unexist.epfl.ch"
-    - receiver: status-eeee-epfl-ch
+        - service="httpdown"
+    - receiver: status-eeee-epfl-ch-httpdown
       group_by:
         - instance
       matchers:
         - instance="https://eeee.epfl.ch"
+        - service="httpdown"
 
 receivers:
   - name: status-admins
     email_configs:
       - to: status-admins@epfl.ch
         headers:
-          Subject: /!\ Alert - {{ .GroupLabels.instance }} is down, please look ASAP
+          Subject: /!\ Alert - {{ .GroupLabels.instance }} have problems, please look ASAP
         text: "{{ .CommonAnnotations.summary }}"
-  - name: status-unexist-epfl-ch
+  - name: status-unexist-epfl-ch-httpdown
     email_configs:
       - to: ""
         headers:
           Subject: /!\ Alert - {{ .GroupLabels.instance }} is down, please look ASAP
         text: "{{ .CommonAnnotations.summary }}"
-  - name: status-eeee-epfl-ch
+  - name: status-eeee-epfl-ch-httpdown
     email_configs:
       - to: ""
         headers:
