@@ -1,0 +1,55 @@
+volumes:
+  prometheus-data:
+  alertmanager-data:
+
+services:
+
+  prometheus:
+    image: prom/prometheus:v3
+    container_name: status_prometheus
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+    volumes:
+      - config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - config/prometheus/rules/:/etc/prometheus/rules/
+      - config/prometheus/scrapes/:/etc/prometheus/scrapes/
+      - prometheus-data:/prometheus
+    command:
+      - "--web.enable-lifecycle" # To enable /-/reload, to restart prometheus with new config
+      - "--config.file=/etc/prometheus/prometheus.yml"
+
+  alertmanager:
+    image: prom/alertmanager:v0.31.1
+    container_name: status_alertmanager
+    restart: unless-stopped
+    ports:
+      - 9093:9093
+    volumes:
+      - config/alertmanager/:/etc/alertmanager/
+    command:
+      - "--config.file=/etc/alertmanager/config.yml"
+      - "--storage.path=/alertmanager"
+      - "--web.external-url=http://localhost:9093"
+
+  grafana:
+    image: grafana/grafana
+    container_name: status_grafana
+    restart: always
+    volumes:
+      - config/grafana/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+      - config/grafana/dashboard.yaml:/etc/grafana/provisioning/dashboards/main.yaml
+      - config/grafana/dashboards/:/var/lib/grafana/dashboards
+    ports:
+      - "3030:3000"
+
+  blackbox-exporter:
+    image: prom/blackbox-exporter:v0.28.0
+    container_name: status_blackbox_exporter
+    ports:
+      - "9115:9115"
+    restart: unless-stopped
+    volumes:
+      - config/blackbox:/config
+    command:
+      - "--config.file=/config/blackbox.yml"

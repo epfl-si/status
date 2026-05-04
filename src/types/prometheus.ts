@@ -1,8 +1,8 @@
 export type configFiles = "scrapes" | "alert";
 
 export const files = {
-  scrapes: "devkit/prometheus/scrapes/list-scrape.yml",
-  alert: "devkit/alertmanager/config.yml",
+  scrapes: "config/prometheus/scrapes/list-scrape.yml",
+  alert: "config/alertmanager/config.yml",
 };
 
 export const apiUrl = {
