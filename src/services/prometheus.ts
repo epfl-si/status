@@ -20,7 +20,7 @@ export const getFileConfigContent = async (src: string) => {
   return parse(file);
 };
 
-export const editFileConfigContent = async ({ src, content, type= }: { src: string; content: object }) => {
+export const editFileConfigContent = async ({ src, content }: { src: string; content: object }) => {
   const yamlContent = stringify(content);
   const isWrited = await fs.writeFile(`${process.cwd()}/${src}`, yamlContent, "utf8");
   return isWrited;
