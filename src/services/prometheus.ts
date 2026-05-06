@@ -103,17 +103,18 @@ export const createAlert = async ({
     const alertConfigSrc = files.alert;
     const alertConfig: Alert = await getFileConfigContent(alertConfigSrc);
 
+    const host = new URL(website).hostname.replaceAll(".", "-");
+    const receiver = `${selectedProbeType}-${host}`;
+
     // stop process if an alert for same usage already exist
     if (
-      alertConfig.receivers.map((receiver) => receiver.name).filter((receiver) => receiver.includes(selectedProbeType))
+      alertConfig.receivers.map((receive) => receive.name).filter((receive) => receive.includes(receiver))
         .length >= 1
     ) {
       return { success };
     }
 
     // Generate content for new alerts
-    const host = new URL(website).hostname.replaceAll(".", "-");
-    const receiver = `${selectedProbeType}-${host}`;
     const alertRoute: AlertRoute = {
       receiver,
       group_by: ["instance"],
