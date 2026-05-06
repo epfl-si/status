@@ -251,7 +251,7 @@ export default function UptimeBarChart({
                   </DropdownMenuPortal>
                 </DropdownMenuSub>
               ))}
-              {alertSubscribers?.length !== Object.values(ProbeType).length && (
+              {alertSubscribers?.length !== Object.values(ProbeType).length && isAutorized && (
                 <>
                   <DropdownMenuSeparator />
                   <AlertCRUDForm
