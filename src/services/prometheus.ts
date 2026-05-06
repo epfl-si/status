@@ -20,7 +20,7 @@ export const getFileConfigContent = async (src: string) => {
   return parse(file);
 };
 
-export const editFileConfigContent = async ({ src, content }: { src: string; content: object }) => {
+export const editFileConfigContent = async ({ src, content, type= }: { src: string; content: object }) => {
   const yamlContent = stringify(content);
   const isWrited = await fs.writeFile(`${process.cwd()}/${src}`, yamlContent, "utf8");
   return isWrited;
@@ -45,9 +45,7 @@ export const addWebsiteToFileConfigContent = async ({
     websites.push(website);
     content.scrape_configs[0].static_configs[0].targets = websites;
     await editFileConfigContent({ src, content });
-
-    await refreshConfig(type);
-    await refreshConfig("alert");
+    await refreshAllConfig();
   }
 };
 
@@ -82,9 +80,7 @@ export const removeWebsiteToFileConfigContent = async ({
     const newAlertReceivers = alertConfig.receivers.filter((r) => r.name !== receiver);
     alertConfig.receivers = newAlertReceivers;
     await editFileConfigContent({ src: files.alert, content: alertConfig });
-
-    await refreshConfig(type);
-    await refreshConfig("alert");
+    await refreshAllConfig();
   }
 };
 
@@ -144,6 +140,7 @@ export const createAlert = async ({
     alertConfig.route.routes.push(alertRoute);
     alertConfig.receivers.push(alertReceiver);
     await editFileConfigContent({ src: files.alert, content: alertConfig });
+    await refreshAllConfig();
 
     success = true;
   } catch (error) {
@@ -186,6 +183,7 @@ export const updateAlert = async ({
 
     // Apply changes to config file
     await editFileConfigContent({ src: files.alert, content: alertConfig });
+    await refreshAllConfig();
   } catch (error) {
     console.error(error);
   }
@@ -205,10 +203,16 @@ export const deleteAlert = async ({ alertSubscriberName }: { alertSubscriberName
 
     // Apply changes to config file
     await editFileConfigContent({ src: files.alert, content: alertConfig });
+    await refreshAllConfig();
   } catch (error) {
     console.error(error);
   }
   return { success };
+};
+
+const refreshAllConfig = async () => {
+  await refreshConfig("alert");
+  await refreshConfig("scrapes");
 };
 
 const refreshConfig = async (type: configFiles) => {
@@ -314,6 +318,7 @@ export const followAlert = async (receiverName: string, email: string) => {
       email_configs_array.length <= 1 ? email_configs_array[0] : email_configs_array.join(",");
 
     await editFileConfigContent({ src: alertConfigSrc, content: alertConfig });
+    await refreshAllConfig();
     await refreshConfig("alert");
     success = true;
   }
@@ -338,7 +343,7 @@ export const unfollowAlert = async (receiverName: string, email: string) => {
       email_configs_array.join(", ");
 
     await editFileConfigContent({ src: alertConfigSrc, content: alertConfig });
-    await refreshConfig("alert");
+    await refreshAllConfig();
     success = true;
   }
 
