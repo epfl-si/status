@@ -42,7 +42,9 @@ yarn-error.log*
 next-env.d.ts
 
 
-config/alertmanager/config.yml
+config/alertmanager/config*
+!config/alertmanager/config.yml.example
 config/alertmanager/secret*
 
-secrets.yaml
+secrets*.yaml
+!secrets.yaml.example

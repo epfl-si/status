@@ -1,0 +1,389 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: svc0041t-status-test
+data:
+  prometheus.yml: |
+    global:
+      # How frequently to scrape targets by default.
+      scrape_interval: 15s
+      # How long until a scrape request times out.
+      scrape_timeout: 10s
+      # How frequently to evaluate rules.
+      evaluation_interval: 1m
+
+    alerting:
+      alertmanagers:
+        - scheme: http
+          static_configs:
+            - targets: [ 'localhost:9093' ]
+
+    rule_files:
+      - "rules/*.yml"
+
+    scrape_config_files:
+      - "scrapes/*.yml"
+  rules-http.yml: |
+    groups:
+      - name: HTTP_Status_Failure
+        rules:
+          - alert: BlackboxProbeHttpFailure
+            expr: probe_http_status_code <= 199 OR probe_http_status_code >= 400 OR
+              probe_success == 0
+            for: 0m
+            keep_firing_for: 5s
+            labels:
+              severity: critical
+              service: httpdown
+            annotations:
+              summary: Blackbox probe HTTP failure (instance {{ $labels.instance }})
+              description: "HTTP status code is not 200-399
+
+                \  VALUE = {{ $value }}
+
+                \  LABELS = {{ $labels }}"
+  rules-icmp.yml: |
+    groups:
+      - name: ICMP_Ping_Delay
+        rules:
+          - alert: BlackboxProbeICMPTimeout
+            expr: probe_icmp_duration_seconds{phase="rtt"} > 0.1
+            for: 0m
+            keep_firing_for: 5s
+            labels:
+              severity: warning
+              service: icmptimeout
+            annotations:
+              summary: Blackbox probe ICMP delay (instance {{ $labels.instance }})
+              description: "ICMP duration time is {{ $value }}"
+  rules-ssl.yml: |
+    groups:
+      - name: SSL_Expiry
+        rules:
+          - alert: BlackboxSslCertificateWillExpireSoon
+            expr: probe_ssl_earliest_cert_expiry - time() < 7*24*3600
+            for: 0m
+            keep_firing_for: 5s
+            labels:
+              severity: warning
+              service: sslexpiry
+            annotations:
+              summary: Certificate for {{ $labels.instance }} is about to expire
+              description: "The certificate for {{ $labels.instance }} is about to expire in
+                less than 7 days."
+  scrapes-blackbox.yml: |
+    scrape_configs:
+      - job_name: 'blackbox_exporter'  # collect blackbox exporter's operational metrics.
+        static_configs:
+          - targets: ['localhost:9115']
+  scrapes-list.yml: |
+    scrape_configs:
+      - job_name: blackbox
+        metrics_path: /probe
+        params:
+          module:
+            - http_2xx
+            - icmp
+        static_configs:
+          - targets:
+              - https://unexist.epfl.ch
+              - https://eeee.epfl.ch
+              - https://people.epfl.ch/
+              - https://actu.epfl.ch
+        relabel_configs:
+          - source_labels:
+              - __address__
+            target_label: __param_target
+          - source_labels:
+              - __param_target
+            target_label: instance
+          - target_label: __address__
+            replacement: localhost:9115
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: blackbox-config
+  namespace: svc0041t-status-test
+data:
+  blackbox.yml: |
+    modules:
+      http_2xx:
+        prober: http
+        timeout: 5s
+        http:
+          preferred_ip_protocol: ip4
+          valid_status_codes: [] # Defaults to 2xx
+      icmp:
+        prober: icmp
+        timeout: 5s
+        icmp:
+          preferred_ip_protocol: ip4
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-config
+  namespace: svc0041t-status-test
+data:
+  alertmanager.yml: |
+    global:
+      smtp_smarthost: mail.epfl.ch:587
+      smtp_auth_username: ${SMTP_AUTH_USERNAME}
+      smtp_auth_password: ${SMTP_AUTH_PASSWORD}
+      smtp_require_tls: true
+      smtp_from: ${SMTP_AUTH_USERNAME}
+    route:
+      group_wait: 45s
+      repeat_interval: 5m
+      receiver: status-admins
+      routes:
+        - receiver: null
+          matchers:
+            - severity=none
+    receivers:
+      - name: status-admins
+        email_configs:
+          - to: status-admins@epfl.ch
+            headers:
+              Subject: /!\ Alert - {{ .GroupLabels.instance }} have problems, please look ASAP
+            text: "{{ .CommonAnnotations.summary }}"
+
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: status
+  namespace: svc0041t-status-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: status
+  template:
+    metadata:
+      labels:
+        app: status
+    spec:
+      restartPolicy: Always
+      initContainers:
+        - name: config-init
+          image: "quay-its.epfl.ch/svc0041/alpine:init"
+          resources:
+            limits:
+              memory: 380Mi
+            requests:
+              cpu: 10m
+              memory: 380Mi
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              mkdir -p /config/prometheus/rules /config/prometheus/scrapes /config/alertmanager /config/blackbox;
+
+              cp /template/prometheus/prometheus.yml /config/prometheus/prometheus.yml;
+              cp /template/prometheus/rules-http.yml /config/prometheus/rules/http.yml;
+              cp /template/prometheus/rules-icmp.yml /config/prometheus/rules/icmp.yml;
+              cp /template/prometheus/rules-ssl.yml /config/prometheus/rules/ssl.yml;
+              cp /template/prometheus/scrapes-blackbox.yml /config/prometheus/scrapes/blackbox.yml;
+
+              if [ ! -f /config/prometheus/scrapes/list-scrape.yml ]; then
+                cp /template/prometheus/scrapes-list.yml /config/prometheus/scrapes/list-scrape.yml;
+              fi;
+
+              if [ ! -f /config/alertmanager/config.yml ]; then
+                envsubst </template/alertmanager/alertmanager.yml> /config/alertmanager/config.yml;
+              fi;
+
+              cp /template/blackbox/blackbox.yml /config/blackbox/blackbox.yml;
+
+              echo "Config files initialized.";
+          volumeMounts:
+            - name: status-config
+              mountPath: /config
+            - name: prometheus-config
+              mountPath: /template/prometheus
+            - name: alertmanager-config
+              mountPath: /template/alertmanager
+            - name: blackbox-config
+              mountPath: /template/blackbox
+          envFrom:
+            - secretRef:
+                name: secrets
+      containers:
+        - name: status
+          image: "quay-its.epfl.ch/svc0041/status:0.2.2"
+          resources:
+            limits:
+              memory: 380Mi
+            requests:
+              cpu: 10m
+              memory: 380Mi
+          volumeMounts:
+            - name: status-config
+              mountPath: /app/config
+          ports:
+            - containerPort: 3000
+              protocol: TCP
+          imagePullPolicy: Always
+          terminationMessagePolicy: File
+          envFrom:
+            - secretRef:
+                name: secrets
+        - name: status-prometheus
+          image: "quay-its.epfl.ch/svc0041/prometheus:v3"
+          resources:
+            limits:
+              memory: 380Mi
+            requests:
+              cpu: 10m
+              memory: 380Mi
+          volumeMounts:
+            - name: status-config
+              mountPath: /etc/prometheus
+              subPath: prometheus
+            - name: status-data
+              mountPath: /prometheus
+              subPath: prometheus
+          ports:
+            - containerPort: 9090
+          args:
+            - "--web.enable-lifecycle"
+            - "--config.file=/etc/prometheus/prometheus.yml"
+          imagePullPolicy: Always
+          envFrom:
+            - secretRef:
+                name: secrets
+        - name: status-alertmanager
+          image: quay-its.epfl.ch/svc0041/alertmanager:v0.31.1
+          resources:
+            limits:
+              memory: 380Mi
+            requests:
+              cpu: 10m
+              memory: 380Mi
+          args:
+            - "--config.file=/etc/alertmanager/config.yml"
+          volumeMounts:
+            - name: status-config
+              mountPath: /etc/alertmanager
+              subPath: alertmanager
+            - name: status-data
+              mountPath: /alertmanager
+              subPath: alertmanager
+          ports:
+            - containerPort: 9093
+          imagePullPolicy: Always
+          envFrom:
+            - secretRef:
+                name: secrets
+        - name: status-blackbox-exporter
+          image: quay-its.epfl.ch/svc0041/blackbox-exporter:v0.28.0
+          resources:
+            limits:
+              memory: 380Mi
+            requests:
+              cpu: 10m
+              memory: 380Mi
+          volumeMounts:
+            - name: status-config
+              mountPath: /blackbox
+              subPath: blackbox
+          ports:
+            - containerPort: 9115
+          imagePullPolicy: Always
+          envFrom:
+            - secretRef:
+                name: secrets
+      volumes:
+        - name: status-config
+          persistentVolumeClaim:
+            claimName: status-config
+        - name: status-data
+          persistentVolumeClaim:
+            claimName: status-data
+        - name: prometheus-config
+          configMap:
+            name: prometheus-config
+        - name: alertmanager-config
+          configMap:
+            name: alertmanager-config
+        - name: blackbox-config
+          configMap:
+            name: blackbox-config
+      imagePullSecrets:
+        - name: svc0041-pull-secret
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: status-data
+  namespace: svc0041t-status-test
+spec:
+  storageClassName: ocs-storagecluster-cephfs
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: status-config
+  namespace: svc0041t-status-test
+spec:
+  storageClassName: ocs-storagecluster-cephfs
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: status-service
+  namespace: svc0041t-status-test
+  labels:
+    app: status
+spec:
+  selector:
+    app: status
+  ports:
+    - name: status-http
+      protocol: TCP
+      port: 80
+      targetPort: 3000
+  type: ClusterIP
+
+---
+
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: status-route
+  namespace: svc0041t-status-test
+  labels:
+    route: private
+spec:
+  host: status-test.epfl.ch
+  to:
+    kind: Service
+    name: status-service
+    weight: 100
+  port:
+    targetPort: status-http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
