@@ -108,8 +108,7 @@ export const createAlert = async ({
 
     // stop process if an alert for same usage already exist
     if (
-      alertConfig.receivers.map((receive) => receive.name).filter((receive) => receive.includes(receiver))
-        .length >= 1
+      alertConfig.receivers.map((receive) => receive.name).filter((receive) => receive.includes(receiver)).length >= 1
     ) {
       return { success };
     }
