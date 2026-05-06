@@ -135,6 +135,7 @@ export const createAlert = async ({
                     : "/!\\ Alert - {{ .GroupLabels.instance }} have problems, please look ASAP",
           },
           text: "{{ .CommonAnnotations.summary }}",
+          send_resolved: true,
         },
       ],
     };

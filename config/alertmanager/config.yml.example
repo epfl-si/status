@@ -4,7 +4,6 @@ global:
   smtp_auth_password: ''
   smtp_require_tls: true
   smtp_from: '' # smtp_from have the same value as smtp_auth_username
-  send_resolved: true
 route:
   # When a new group of alerts is created by an incoming alert, wait at
   # least 'group_wait' to send the initial notification.
@@ -44,16 +43,19 @@ receivers:
         headers:
           Subject: /!\ Alert - {{ .GroupLabels.instance }} have problems, please look ASAP
         text: "{{ .CommonAnnotations.summary }}"
+        send_resolved: true
   - name: status-unexist-epfl-ch-httpdown
     email_configs:
       - to: ""
         headers:
           Subject: /!\ Alert - {{ .GroupLabels.instance }} is down, please look ASAP
         text: "{{ .CommonAnnotations.summary }}"
+        send_resolved: true
   - name: status-eeee-epfl-ch-httpdown
     email_configs:
       - to: ""
         headers:
           Subject: /!\ Alert - {{ .GroupLabels.instance }} is down, please look ASAP
         text: "{{ .CommonAnnotations.summary }}"
+        send_resolved: true
 

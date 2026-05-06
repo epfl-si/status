@@ -71,6 +71,7 @@ export interface AlertReceiverEmailConfig {
     Subject: string;
   };
   text: string;
+  send_resolved: boolean;
 }
 
 export interface AlertReceiver {
