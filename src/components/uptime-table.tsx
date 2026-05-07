@@ -20,7 +20,9 @@ export function UptimeTable({ user }: { user: User }) {
   };
 
   const [scrapFileConfig, _setScrapFileConfig] = useState(new FileConfig("scrapes"));
-  const [uptimes, setUptimes] = useState<PrometheusQueryResponse>();
+  const [uptimes, setUptimes] = useState<
+    PrometheusQueryResponse | { success: boolean; error: unknown; data?: undefined } | undefined
+  >();
   const [alertSubscribers, setAlertSubscribers] = useState<AlertSubscriber[]>();
   const [search, setSearch] = useState<string>(searchParams.has("url") ? searchParams.get("url") || "" : "");
   const [authorized, setAuthorized] = useState<boolean | undefined>(false);
@@ -59,12 +61,13 @@ export function UptimeTable({ user }: { user: User }) {
       {uptimes || (uptimes && search.length !== 0) ? (
         uptimes?.success === false ? (
           <div>{translations.site("apiUnreacheable")}</div>
-        ) : uptimes?.data.result.filter(
+        ) : uptimes?.data &&
+          uptimes?.data?.result.filter(
             (website) =>
               scrapFileConfig.content.scrape_configs[0].static_configs[0].targets.includes(website?.metric.instance) &&
               (search.length >= 3 ? website.metric.instance.includes(search) : true),
           )?.length > 0 ? (
-          uptimes?.data.result
+          uptimes?.data?.result
             .filter(
               (website) =>
                 scrapFileConfig.content.scrape_configs[0].static_configs[0].targets.includes(website.metric.instance) &&

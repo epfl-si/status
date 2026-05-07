@@ -231,7 +231,7 @@ export const PrometheusAPIQueryCall = async (query: string) => {
     );
     return jsonResponse;
   } catch (error) {
-    return { success: false, error };
+    return { success: false, error, data: undefined };
   }
 };
 
@@ -264,28 +264,30 @@ export const getHTTPResponse = async () => {
 
   const response = httpMs;
 
-  const metricsDataArray = response.data.result;
+  const metricsDataArray = response.data?.result;
 
-  response.data.result = metricsDataArray.map((result, index) => {
-    const httpStatusMetrics = httpStatus.data.result[index].values;
-    const httpStatusCodeMetrics = httpStatusCode.data.result[index].values;
-    return {
-      ...result,
-      values: result.values.map((val: any) => {
-        const status = (httpStatusMetrics as any).filter((metric: [][]) => metric[0] === val[0])[0][1];
-        const statusCode = (httpStatusCodeMetrics as any).filter((metric: [][]) => metric[0] === val[0])[0][1];
-        const datetime = new Date((val[0] as number) * 1000);
-        return {
-          timestamp: val[0] as number,
-          httpResponse: val[1],
-          httpStatus: status,
-          httpStatusCode: statusCode,
-          datetime,
-        };
-      }),
-    };
-  });
-
+  if (response.data) {
+    const newResult = metricsDataArray?.map((result, index) => {
+      const httpStatusMetrics = httpStatus.data?.result[index].values;
+      const httpStatusCodeMetrics = httpStatusCode.data?.result[index].values;
+      return {
+        ...result,
+        values: result.values.map((val: any) => {
+          const status = (httpStatusMetrics as any).filter((metric: [][]) => metric[0] === val[0])[0][1];
+          const statusCode = (httpStatusCodeMetrics as any).filter((metric: [][]) => metric[0] === val[0])[0][1];
+          const datetime = new Date((val[0] as number) * 1000);
+          return {
+            timestamp: val[0] as number,
+            httpResponse: val[1],
+            httpStatus: status,
+            httpStatusCode: statusCode,
+            datetime,
+          };
+        }),
+      };
+    });
+    response.data.result = newResult !== undefined ? newResult : response.data.result;
+  }
   return response;
 };
 
