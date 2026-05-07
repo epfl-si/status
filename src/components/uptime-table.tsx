@@ -30,8 +30,10 @@ export function UptimeTable({ user }: { user: User }) {
       await scrapFileConfig.getFileContent();
       const httpResponse = await getHTTPResponse();
       setUptimes(httpResponse);
-      const subscribers = await getAlertSubscriber();
-      setAlertSubscribers(subscribers);
+      if (httpResponse.success !== false) {
+        const subscribers = await getAlertSubscriber();
+        setAlertSubscribers(subscribers);
+      }
       const isAccessRight = await isAuthorized(user as UserInfo);
       setAuthorized(isAccessRight);
     };
@@ -48,14 +50,20 @@ export function UptimeTable({ user }: { user: User }) {
             onChange={(e) => setSearch(e.target.value)}
           />
         </Field>
-        {authorized ? <AddWebsiteButton user={user} scrapFileConfig={scrapFileConfig} /> : <></>}
+        {authorized && uptimes?.success !== false ? (
+          <AddWebsiteButton user={user} scrapFileConfig={scrapFileConfig} />
+        ) : (
+          <></>
+        )}
       </div>
       {uptimes || (uptimes && search.length !== 0) ? (
-        uptimes?.data.result.filter(
-          (website) =>
-            scrapFileConfig.content.scrape_configs[0].static_configs[0].targets.includes(website?.metric.instance) &&
-            (search.length >= 3 ? website.metric.instance.includes(search) : true),
-        )?.length > 0 ? (
+        uptimes?.success === false ? (
+          <div>{translations.site("apiUnreacheable")}</div>
+        ) : uptimes?.data.result.filter(
+            (website) =>
+              scrapFileConfig.content.scrape_configs[0].static_configs[0].targets.includes(website?.metric.instance) &&
+              (search.length >= 3 ? website.metric.instance.includes(search) : true),
+          )?.length > 0 ? (
           uptimes?.data.result
             .filter(
               (website) =>

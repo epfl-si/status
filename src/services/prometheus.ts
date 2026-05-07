@@ -223,12 +223,16 @@ const refreshConfig = async (type: configFiles) => {
 };
 
 export const PrometheusAPIQueryCall = async (query: string) => {
-  const baseUrl = process.env.PROMETHEUS_API_URL;
-  const url = `${baseUrl}/api/v1/query?query=${query}`;
-  const jsonResponse: PrometheusQueryResponse = await fetch(url.toString(), { method: "GET" }).then((response) =>
-    response.json(),
-  );
-  return jsonResponse;
+  try {
+    const baseUrl = process.env.PROMETHEUS_API_URL;
+    const url = `${baseUrl}/api/v1/query?query=${query}`;
+    const jsonResponse: PrometheusQueryResponse = await fetch(url.toString(), { method: "GET" }).then((response) =>
+      response.json(),
+    );
+    return jsonResponse;
+  } catch (error) {
+    return { success: false, error };
+  }
 };
 
 export const getCurrentMsResponse = async () => {
@@ -253,6 +257,10 @@ export const getHTTPResponse = async () => {
   const httpMs = await getCurrentMsResponse();
   const httpStatus = await getStatusHTTPResponse();
   const httpStatusCode = await getHTTPCodeResponse();
+
+  if (httpStatusCode.success === false) {
+    return httpStatusCode;
+  }
 
   const response = httpMs;
 

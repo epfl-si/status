@@ -97,6 +97,7 @@
         }
       },
       "loadingMessage": "Chargement...",
+      "apiUnreacheable": "Impossible d'obtenir les données: les API ne sont pas atteignable.",
       "noResult": "Aucun résultats pour \"{search}\""
     },
     "footer": {

@@ -97,6 +97,7 @@
         }
       },
       "loadingMessage": "Loading...",
+      "apiUnreacheable": "Impossible to get data: API are nureacheable.",
       "noResult": "No result for \"{search}\""
     },
     "footer": {
