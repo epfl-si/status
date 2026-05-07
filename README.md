@@ -22,6 +22,7 @@ A simple next.js monitoring solution based on Prometheus.
   - [Configure secrets](#configure-secrets)
   - [Deployment in test](#deployment-in-test)
   - [Deployment in prod](#deployment-in-prod)
+- [Usage of short-lived website](#usage-of-short-lived-website)
 
 # Requirements
 
@@ -137,17 +138,30 @@ You can open and use the web application at [http://localhost:3000](http://local
 
 Duplicate twice `secrets.yaml.exemple` and name it `secrets-test.yaml` and `secrets-test.yaml`
 
-replace all values betwwen "<" and ">" with test or prod values from `keybase`
+replace all values betwwen "<" and ">" with test or prod values from **keybase** (`/keybase/team/epfl_status/secrets.yml`)
 
 ## Deployment in test
 
-First, push your secrets
+First, you need to authenticate to OpenShift in your terminal
+
+```sh
+oc login --web --server=https://api.ocpitst0001.xaas.epfl.ch:6443
+```
+
+This command will open your navigator. You need to fill your credentials and after logged in, you can close your navigator.
+After that, if you're not in **svc0041t-status-test** project, you need to change it
+
+```sh
+oc project svc0041t-status-test
+```
+
+Next, push your secrets to OpenShift
 
 ```sh
 kubectl apply -f secrets-test.yaml
 ```
 
-next, push the deployment configuration
+To conclude, push the deployment configuration
 
 ```sh
 kubectl apply -f deployment-test.yaml
@@ -155,14 +169,58 @@ kubectl apply -f deployment-test.yaml
 
 ## Deployment in prod
 
-First, push your secrets
+First, you need to authenticate to OpenShift in your terminal
+
+```sh
+oc login --web --server=https://api.ocpitsp0001.xaas.epfl.ch:6443
+```
+
+This command will open your navigator. You need to fill your credentials and after logged in, you can close your navigator.
+After that, if you're not in **svc0041p-status-prod** project, you need to change it
+
+```sh
+oc project svc0041p-status-prod
+```
+
+Next, push your secrets
 
 ```sh
 kubectl apply -f secrets-prod.yaml
 ```
 
-next, push the deployment configuration
+To conclude, push the deployment configuration
 
 ```sh
 kubectl apply -f deployment-prod.yaml
+```
+
+# Usage of short-lived website
+
+To test alerting, we're setup a "short lived website" that's able to be deploy and delete easily.
+
+For this, there is a file called `deployment-testserver.yaml`.
+
+First, you need to authenticate to OpenShift in your terminal
+
+```sh
+oc login --web --server=https://api.ocpitsp0001.xaas.epfl.ch:6443
+```
+
+This command will open your navigator. You need to fill your credentials and after logged in, you can close your navigator.
+After that, if you're not in **svc0041p-status-prod** project, you need to change it
+
+```sh
+oc project svc0041p-status-prod
+```
+
+To deploy the short-lived website, you need to execute the command below.
+
+```sh
+kubectl apply -f deployment-testserver.yaml
+```
+
+All you have to do for deleting is the command below.
+
+```sh
+kubectl delete -f deployment-testserver.yaml
 ```

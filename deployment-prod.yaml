@@ -216,7 +216,7 @@ spec:
                 name: secrets
       containers:
         - name: status
-          image: "quay-its.epfl.ch/svc0041/status:0.2.2"
+          image: "quay-its.epfl.ch/svc0041/status:0.2.8"
           resources:
             limits:
               memory: 380Mi
