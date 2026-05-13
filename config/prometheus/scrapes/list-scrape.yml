@@ -7,10 +7,9 @@ scrape_configs:
         - icmp
     static_configs:
       - targets:
-          - https://unexist.epfl.ch
-          - https://eeee.epfl.ch
-          - https://people.epfl.ch/
-          - https://actu.epfl.ch
+          - https://go.epfl.ch
+          - https://ticketshop.epfl.ch
+          - https://go.epfl.ch/nbo
     relabel_configs:
       - source_labels:
           - __address__

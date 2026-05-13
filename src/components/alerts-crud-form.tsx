@@ -91,14 +91,25 @@ export default function AlertCRUDForm({
       } else if (action === "update") {
         toast.promise<{ success: boolean }>(
           () =>
-            new Promise((resolve) => {
+            new Promise((resolve, reject) => {
               try {
-                const data = updateAlert({
+                updateAlert({
                   selectedProbeType,
                   oldProbeType: alertSubscriberName?.split("-")[0] || "",
                   website,
-                });
-                resolve(data);
+                  user,
+                })
+                  .then((data) => {
+                    if (data.success === true) {
+                      resolve(data);
+                    } else {
+                      reject(data);
+                    }
+                  })
+                  .catch((error) => {
+                    console.error(error);
+                    reject(error);
+                  });
               } catch (error) {
                 console.error(error);
               }

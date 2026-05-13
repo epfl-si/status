@@ -26,6 +26,21 @@ export const editFileConfigContent = async ({ src, content }: { src: string; con
   return isWrited;
 };
 
+const generateEmailFromUser = (user?: User) => {
+  return user?.email?.replace("@epfl.ch", "").replaceAll(".", "-");
+};
+
+const generateReceiverName = ({ type, website, user }: { type: string; website: string; user?: User }) => {
+  // const host = new URL(website).hostname.replaceAll(".", "-");
+  const host = website
+    .replace(/(^\w+:|^)\/\//, "")
+    .replace(/\/$/, "")
+    .replaceAll(".", "-")
+    .replaceAll("/", "-"); // regex to remove protocol (https...) and another to remove last "/". replace function to replace all "." or "/" by a "-"
+  const receiver = `${type}-${host}${user && type !== "general" ? ("-" + generateEmailFromUser(user)) : ""}`; // it will loke like : httpdown-google-com-test-arsene-lupin, for (httpdown, https://google.com/test/, <User email=arsene.lupin@epfl.ch>)
+  return receiver;
+};
+
 export const addWebsiteToFileConfigContent = async ({
   src,
   content,
@@ -39,13 +54,35 @@ export const addWebsiteToFileConfigContent = async ({
   type: configFiles;
   user: User;
 }) => {
-  const websites = content.scrape_configs[0].static_configs[0].targets;
+  const websites = content.scrape_configs[0].static_configs[0].targets || [];
   const authorized = await isAuthorized(user as UserInfo);
-  if (!content.scrape_configs[0].static_configs[0].targets.includes(website) && authorized) {
+  if (!content.scrape_configs[0].static_configs[0].targets?.includes(website) && authorized) {
     websites.push(website);
     content.scrape_configs[0].static_configs[0].targets = websites;
     await editFileConfigContent({ src, content });
     await refreshAllConfig();
+  }
+  const alertConfig = await getAlertSubscriberConfig();
+  const configWithWebsite =
+    alertConfig.route.routes.length === 0
+      ? []
+      : alertConfig.route.routes.filter(
+          (route) =>
+            route.matchers
+              .filter((matcher) => matcher.includes("instance="))[0]
+              ?.replace("instance=", "")
+              .replaceAll('"', "") === website,
+        );
+  if (configWithWebsite.length <= 0) {
+    await createAlert({ selectedProbeType: "general", user, website });
+  } else {
+    const receiverName = generateReceiverName({ type: "general", website, user });
+    const generalWebsiteReceiver = configWithWebsite.filter((route) => route.receiver === receiverName)[0];
+    if (generalWebsiteReceiver && generalWebsiteReceiver.receiver && user.email) {
+      await followAlert(generalWebsiteReceiver.receiver, user.email);
+    } else {
+      await createAlert({ selectedProbeType: "general", user, website });
+    }
   }
 };
 
@@ -91,7 +128,7 @@ export const createAlert = async ({
 }: {
   selectedProbeType: string;
   website: string;
-  user: User;
+  user?: User;
 }) => {
   let success = false;
   try {
@@ -99,8 +136,8 @@ export const createAlert = async ({
     const alertConfigSrc = files.alert;
     const alertConfig: Alert = await getFileConfigContent(alertConfigSrc);
 
-    const host = new URL(website).hostname.replaceAll(".", "-");
-    const receiver = `${selectedProbeType}-${host}`;
+    // const host = new URL(website).hostname.replaceAll(".", "-");
+    const receiver = generateReceiverName({ type: selectedProbeType, website, user });
 
     // stop process if an alert for same usage already exist
     if (
@@ -110,11 +147,18 @@ export const createAlert = async ({
     }
 
     // Generate content for new alerts
-    const alertRoute: AlertRoute = {
-      receiver,
-      group_by: ["instance"],
-      matchers: [`instance="${website}"`, `service="${selectedProbeType}"`],
-    };
+    const alertRoute: AlertRoute =
+      selectedProbeType === "general"
+        ? {
+            receiver,
+            group_by: ["instance"],
+            matchers: [`instance="${website}"`, `service=none`, `severity=none`],
+          }
+        : {
+            receiver,
+            group_by: ["instance"],
+            matchers: [`instance="${website}"`, `service="${selectedProbeType}"`],
+          };
     const alertReceiver: AlertReceiver = {
       name: receiver,
       email_configs: [
@@ -153,10 +197,12 @@ export const updateAlert = async ({
   selectedProbeType,
   website,
   oldProbeType,
+  user,
 }: {
   selectedProbeType: string;
   website: string;
   oldProbeType: string;
+  user: User;
 }) => {
   let success = false;
   try {
@@ -165,9 +211,9 @@ export const updateAlert = async ({
     const alertConfig: Alert = await getFileConfigContent(alertConfigSrc);
 
     // Generate content for new alerts
-    const host = new URL(website).hostname.replaceAll(".", "-");
-    const oldReceiverName = `${oldProbeType}-${host}`;
-    const updatedReceiverName = `${selectedProbeType}-${host}`;
+    // const host = new URL(website).hostname.replaceAll(".", "-");
+    const oldReceiverName = generateReceiverName({ type: oldProbeType, website, user });
+    const updatedReceiverName = generateReceiverName({ type: selectedProbeType, website, user });
 
     // get id of route and receiver name to update
     const receiverId = alertConfig.receivers.findIndex((receiver) => receiver.name === oldReceiverName);
@@ -184,8 +230,11 @@ export const updateAlert = async ({
     // Apply changes to config file
     await editFileConfigContent({ src: files.alert, content: alertConfig });
     await refreshAllConfig();
+
+    success = true;
   } catch (error) {
     console.error(error);
+    return { success };
   }
   return { success };
 };
@@ -253,7 +302,8 @@ export const getHTTPCodeResponse = async () => {
   return response;
 };
 
-export const getHTTPResponse = async () => {
+export const getHTTPResponse = async (user?: User) => {
+  const userInstanceArray = await getUserWebsites(user);
   const httpMs = await getCurrentMsResponse();
   const httpStatus = await getStatusHTTPResponse();
   const httpStatusCode = await getHTTPCodeResponse();
@@ -267,7 +317,7 @@ export const getHTTPResponse = async () => {
   const metricsDataArray = response.data?.result;
 
   if (response.data) {
-    const newResult = metricsDataArray?.map((result, index) => {
+    let newResult = metricsDataArray?.map((result, index) => {
       const httpStatusMetrics = httpStatus.data?.result[index].values;
       const httpStatusCodeMetrics = httpStatusCode.data?.result[index].values;
       return {
@@ -286,9 +336,27 @@ export const getHTTPResponse = async () => {
         }),
       };
     });
-    response.data.result = newResult !== undefined ? newResult : response.data.result;
+
+    newResult = newResult !== undefined ?
+      newResult.filter((data) => userInstanceArray.includes(data.metric.instance))
+      : response.data.result
+
+    response.data.result = newResult;
   }
+
   return response;
+};
+
+const getUserWebsites = async (user?: User) => {
+  const alertConfig = await getAlertSubscriberConfig();
+
+  const receiverNames = alertConfig.receivers.filter((receiver) => receiver.name.startsWith("general"))
+    .filter((receiver) => receiver.email_configs[0].to.includes(user?.email as string)).map((receiver) => receiver.name); // get receiver names list of all website added by a specific user.
+  console.log(receiverNames)
+
+  const instanceList = alertConfig.route.routes.filter((route) => receiverNames.includes(route.receiver as string)).map((route) => route.matchers.filter((matcher) => matcher.includes("instance="))[0].replace("instance=", "").replaceAll('"', ''));
+  console.log(instanceList);
+  return instanceList;
 };
 
 const getAlertConfig = async () => {

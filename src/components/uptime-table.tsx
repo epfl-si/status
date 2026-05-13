@@ -30,8 +30,9 @@ export function UptimeTable({ user }: { user: User }) {
   useEffect(() => {
     const call = async () => {
       await scrapFileConfig.getFileContent();
-      const httpResponse = await getHTTPResponse();
+      const httpResponse = await getHTTPResponse(user);
       setUptimes(httpResponse);
+      console.log(httpResponse);
       if (httpResponse.success !== false) {
         const subscribers = await getAlertSubscriber();
         setAlertSubscribers(subscribers);
@@ -62,10 +63,11 @@ export function UptimeTable({ user }: { user: User }) {
         uptimes?.success === false ? (
           <div>{translations.site("apiUnreacheable")}</div>
         ) : uptimes?.data &&
-          uptimes?.data?.result.filter(
+          uptimes?.data?.result?.filter(
             (website) =>
-              scrapFileConfig.content.scrape_configs[0].static_configs[0].targets.includes(website?.metric.instance) &&
-              (search.length >= 3 ? website.metric.instance.includes(search) : true),
+              scrapFileConfig?.content?.scrape_configs[0].static_configs[0].targets?.includes(
+                website?.metric.instance,
+              ) && (search.length >= 3 ? website.metric.instance.includes(search) : true),
           )?.length > 0 ? (
           uptimes?.data?.result
             .filter(
