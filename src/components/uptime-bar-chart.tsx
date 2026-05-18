@@ -70,24 +70,57 @@ export default function UptimeBarChart({
   const [loadingChange, setLoadingChange] = useState(false);
 
   useEffect(() => {
-    setChartDataFormat([
-      ...new Map(
-        chartData
-          ?.map((data) => ({
-            timestamp: data.timestamp,
-            time: `${data.datetime.getHours()}:${data.datetime.getMinutes().toString().length === 1 ? `0${data.datetime.getMinutes()}` : data.datetime.getMinutes()}`,
-            responseCode: data.httpStatusCode,
-            responseTime: Number(data.httpResponse) * 1000,
-          }))
-          .map((item) => [item.time, item]),
-      ).values(),
-    ]);
+    // setChartDataFormat([
+    //   ...new Map(
+    //     chartData
+    //       ?.map((data) => ({
+    //         timestamp: data.timestamp,
+    //         time: `${data.datetime.getHours()}:${data.datetime.getMinutes().toString().length === 1 ? `0${data.datetime.getMinutes()}` : data.datetime.getMinutes()}`,
+    //         responseCode: data.httpStatusCode,
+    //         responseTime: Number(data.httpResponse) * 1000,
+    //       }))
+    //       .map((item) => [item.time, item]),
+    //   ).values(),
+    // ]);
+    // setChartDataFormat(
+    //   // ...new Map(
+    //     chartData
+    //       ?.map((data) => ({
+    //         timestamp: data.timestamp,
+    //         time: `${data.datetime.getHours()}:${data.datetime.getMinutes().toString().length === 1 ? `0${data.datetime.getMinutes()}` : data.datetime.getMinutes()}`,
+    //         responseCode: data.httpStatusCode,
+    //         responseTime: Number(data.httpResponse) * 1000,
+    //       }))
+    //       // .map((item) => [item.time, item]),
+    //   // ).values(),
+    // );
+    setChartDataFormat(
+      [
+        ...new Map(
+          chartData
+            ?.map((data) => ({
+              timestamp: data.timestamp,
+              time: `${data.datetime.getHours()}:${data.datetime.getMinutes().toString().length === 1 ? `0${data.datetime.getMinutes()}` : data.datetime.getMinutes()}:${data.datetime.getSeconds().toString().length === 1 ? `0${data.datetime.getSeconds()}` : data.datetime.getSeconds()}`,
+              responseCode: data.httpStatusCode,
+              responseTime: Number(data.httpResponse) * 1000,
+            }))
+            .map((item) => [item.timestamp, item]),
+        ).values(),
+      ].filter(
+        (data, index, arr) =>
+          parseInt(data.time.split(":")[2]) === parseInt(arr[0].time.split(":")[2]) ||
+          parseInt(data.time.split(":")[2]) ===
+            (parseInt(arr[0].time.split(":")[2]) + 30 < 60
+              ? parseInt(arr[0].time.split(":")[2]) + 30
+              : parseInt(arr[0].time.split(":")[2]) + 30 - 60),
+      ),
+    );
   }, [chartData]);
 
-  const [charDataFormat, setChartDataFormat] = useState(
+  const [chartDataFormat, setChartDataFormat] = useState(
     chartData?.map((data) => ({
       timestamp: data.timestamp,
-      time: `${data.datetime.getHours()}:${data.datetime.getMinutes().toString().length === 1 ? `0${data.datetime.getMinutes()}` : data.datetime.getMinutes()}`,
+      time: `${data.datetime.getHours()}:${data.datetime.getMinutes().toString().length === 1 ? `0${data.datetime.getMinutes()}` : data.datetime.getMinutes()}:${data.datetime.getSeconds().toString().length === 1 ? `0${data.datetime.getSeconds()}` : data.datetime.getSeconds()}`,
       responseCode: data.httpStatusCode,
       responseTime: Number(data.httpResponse) * 1000,
     })),
@@ -155,7 +188,7 @@ export default function UptimeBarChart({
         <ChartContainer config={chartConfig} className="aspect-auto h-[250px] w-full">
           <BarChart
             accessibilityLayer
-            data={charDataFormat}
+            data={chartDataFormat}
             margin={{
               left: 12,
               right: 12,
@@ -169,7 +202,7 @@ export default function UptimeBarChart({
               formatter={(value) => `${(value as number).toFixed(2)} ms`}
             />
             <Bar dataKey={"responseTime"} fill={`var(--color-responseTime)`} height={5}>
-              {charDataFormat?.map((data) => (
+              {chartDataFormat?.map((data) => (
                 <Cell
                   key={data.timestamp}
                   fill={parseInt(data.responseCode) < 200 || parseInt(data.responseCode) >= 400 ? "#C82909" : "#209C07"}
@@ -228,7 +261,14 @@ export default function UptimeBarChart({
                             alertSubscribers={alertSubscribers}
                             alertSubscriberName={alertSubscriber.name}
                           >
-                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                            {/* <DropdownMenuItem onSelect={(e) => e.preventDefault()}> */}
+                            <DropdownMenuItem
+                              onSelect={(e) => {
+                                console.log(chartData);
+                                console.log(chartDataFormat);
+                                return e.preventDefault();
+                              }}
+                            >
                               <Settings />
                               {translations.alert("edit")}
                             </DropdownMenuItem>

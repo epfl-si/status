@@ -11,7 +11,7 @@ data:
       # How long until a scrape request times out.
       scrape_timeout: 10s
       # How frequently to evaluate rules.
-      evaluation_interval: 1m
+      evaluation_interval: 30s
 
     alerting:
       alertmanagers:
@@ -48,7 +48,7 @@ data:
       - name: ICMP_Ping_Delay
         rules:
           - alert: BlackboxProbeICMPTimeout
-            expr: probe_icmp_duration_seconds{phase="rtt"} > 0.1
+            expr: probe_icmp_duration_seconds{phase="rtt"} > 5
             for: 0m
             keep_firing_for: 5s
             labels:
@@ -102,7 +102,6 @@ data:
             replacement: localhost:9115
 
 ---
-
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -124,7 +123,6 @@ data:
           preferred_ip_protocol: ip4
 
 ---
-
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -139,8 +137,9 @@ data:
       smtp_require_tls: true
       smtp_from: ${SMTP_AUTH_USERNAME}
     route:
-      group_wait: 45s
-      repeat_interval: 5m
+      group_wait: 5s
+      group_interval: 30s
+      repeat_interval: 30s
       receiver: status-admins
       routes:
         - receiver: null
@@ -217,7 +216,7 @@ spec:
                 name: secrets
       containers:
         - name: status
-          image: "quay-its.epfl.ch/svc0041/status:0.2.8"
+          image: "quay-its.epfl.ch/svc0041/status:0.2.8-30s"
           resources:
             limits:
               memory: 380Mi
@@ -320,7 +319,6 @@ spec:
         - name: svc0041-pull-secret
 
 ---
-
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -335,7 +333,6 @@ spec:
       storage: 5Gi
 
 ---
-
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -350,7 +347,6 @@ spec:
       storage: 5Gi
 
 ---
-
 apiVersion: v1
 kind: Service
 metadata:
@@ -369,7 +365,6 @@ spec:
   type: ClusterIP
 
 ---
-
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:

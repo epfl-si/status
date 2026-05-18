@@ -6,14 +6,13 @@ global:
   scrape_timeout: 10s
 
   # How frequently to evaluate rules.
-  evaluation_interval: 1m
-
+  evaluation_interval: 30s
 
 alerting:
   alertmanagers:
     - scheme: http
       static_configs:
-        - targets: [ 'status_alertmanager:9093' ]
+        - targets: ["status_alertmanager:9093"]
 
 rule_files:
   - "rules/*.yml"
