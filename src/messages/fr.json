@@ -37,7 +37,7 @@
       "uptime": {
         "up": "EN LIGNE",
         "down": "HORS LIGNE",
-        "description": "Le statut du site sur les 30 dernières minutes",
+        "description": "30 dernières minutes",
         "delete": "Supprimer le site",
         "alert": {
           "availableAlerts": "Les alertes disponibles",
@@ -85,7 +85,7 @@
             "errorMessage": "Erreur, tous les champs doivent être rempli"
           },
           "delete": {
-            "trigger": "Supprimer le site",
+            "trigger": "Supprimer",
             "title": "Supprimer le site",
             "description": "Êtes-vous sûr de vouloir supprimer le site suivant : \"{website}\" ? Cette action est irréversible.",
             "confirm": "Confirmer",

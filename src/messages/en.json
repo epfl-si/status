@@ -37,7 +37,7 @@
       "uptime": {
         "up": "UP",
         "down": "DOWN",
-        "description": "Website status from latest 30 minutes",
+        "description": "30 latest minutes",
         "delete": "Delete the website",
         "alert": {
           "availableAlerts": "All available alerts",
@@ -85,7 +85,7 @@
             "errorMessage": "Error, all field need to be filled"
           },
           "delete": {
-            "trigger": "Delete the website",
+            "trigger": "Delete",
             "title": "Delete the website",
             "description": "Are you sure to want to delete the following website : \"{website}\" ? This action cannot be undo.",
             "confirm": "Confirm",

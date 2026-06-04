@@ -43,8 +43,10 @@ export function UptimeTable({ user }: { user: User }) {
     call();
   }, [scrapFileConfig.getFileContent, user]);
   return (
-    <div className="flex flex-col mx-auto px-40 py-12">
-      <div className="mb-4 flex justify-between">
+    // <div className="flex flex-col mx-auto px-40 py-12 w-332">
+    // <div className="flex flex-col mx-24 py-12">
+    <div className="flex flex-col mx-auto py-12 w-336">
+      <div className="mb-4 flex justify-between mx-2">
         <Field orientation="horizontal" className="w-150">
           <Input
             type="search"
@@ -69,7 +71,7 @@ export function UptimeTable({ user }: { user: User }) {
                 website?.metric.instance,
               ) && (search.length >= 3 ? website.metric.instance.includes(search) : true),
           )?.length > 0 ? (
-          <div className="flex flex-wrap justify-between w-full mx-auto">
+          <div className="flex flex-wrap w-full mx-auto">
             {
               uptimes?.data?.result
             .filter(

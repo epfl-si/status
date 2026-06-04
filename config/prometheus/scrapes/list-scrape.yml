@@ -9,9 +9,13 @@ scrape_configs:
       - targets:
           - https://go.epfl.ch
           - https://ticketshop.epfl.ch
-          - https://go.epfl.ch/nbo
           - https://status-testserver.fsd.epfl.ch
           - https://eeee.epfl.ch
+          - https://status-test.epfl.ch
+          - https://status.epfl.ch
+          - https://www.epfl.ch
+          - https://actu.epfl.ch
+          - https://unexist.epfl.ch
     relabel_configs:
       - source_labels:
           - __address__
