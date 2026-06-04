@@ -27,16 +27,16 @@ export class FileConfig {
   editFileContent = async (content: Scrape) => {
     const src = this.src;
     const yamlContent = await editFileConfigContent({ src, content });
+    await this.getFileContent();
     return yamlContent;
   };
 
   addWebsite = async (website: string, user: User) => {
     const src = this.src;
     const content = this.content;
-    const type = this.type;
     let success = false;
     try {
-      await addWebsiteToFileConfigContent({ src, content, website, type, user });
+      await addWebsiteToFileConfigContent({ src, content, website, user });
       await this.getFileContent();
       success = true;
     } catch {
@@ -48,10 +48,10 @@ export class FileConfig {
   removeWebsite = async (website: string, user: User) => {
     const src = this.src;
     const content = this.content;
-    const type = this.type;
     let success = false;
     try {
-      await removeWebsiteToFileConfigContent({ src, content, website, type, user });
+      await removeWebsiteToFileConfigContent({ src, content, website, user });
+      await this.getFileContent();
       success = true;
     } catch {
       success = false;

@@ -30,8 +30,9 @@ export function UptimeTable({ user }: { user: User }) {
   useEffect(() => {
     const call = async () => {
       await scrapFileConfig.getFileContent();
-      const httpResponse = await getHTTPResponse();
+      const httpResponse = await getHTTPResponse(user);
       setUptimes(httpResponse);
+      console.log(httpResponse);
       if (httpResponse.success !== false) {
         const subscribers = await getAlertSubscriber();
         setAlertSubscribers(subscribers);
@@ -42,7 +43,7 @@ export function UptimeTable({ user }: { user: User }) {
     call();
   }, [scrapFileConfig.getFileContent, user]);
   return (
-    <div>
+    <div className="flex flex-col mx-auto px-40 py-12">
       <div className="mb-4 flex justify-between">
         <Field orientation="horizontal" className="w-150">
           <Input
@@ -62,12 +63,15 @@ export function UptimeTable({ user }: { user: User }) {
         uptimes?.success === false ? (
           <div>{translations.site("apiUnreacheable")}</div>
         ) : uptimes?.data &&
-          uptimes?.data?.result.filter(
+          uptimes?.data?.result?.filter(
             (website) =>
-              scrapFileConfig.content.scrape_configs[0].static_configs[0].targets.includes(website?.metric.instance) &&
-              (search.length >= 3 ? website.metric.instance.includes(search) : true),
+              scrapFileConfig?.content?.scrape_configs[0].static_configs[0].targets?.includes(
+                website?.metric.instance,
+              ) && (search.length >= 3 ? website.metric.instance.includes(search) : true),
           )?.length > 0 ? (
-          uptimes?.data?.result
+          <div className="flex flex-wrap justify-between w-full mx-auto">
+            {
+              uptimes?.data?.result
             .filter(
               (website) =>
                 scrapFileConfig.content.scrape_configs[0].static_configs[0].targets.includes(website.metric.instance) &&
@@ -78,16 +82,23 @@ export function UptimeTable({ user }: { user: User }) {
                 key={website.metric.instance}
                 website={website}
                 isAutorized={authorized}
-                alertSubscribers={alertSubscribers?.filter((alert) => {
-                  const matcher = alert.targetReceiver?.matchers?.filter((matcher) => matcher.includes("instance="))[0];
-                  return (
-                    matcher?.substring(matcher?.indexOf('"') + 1, matcher?.lastIndexOf('"')) === website.metric.instance
-                  );
-                })}
+                alertSubscribers={alertSubscribers
+                  ?.filter((alert) => {
+                    const matcher = alert.targetReceiver?.matchers?.filter((matcher) =>
+                      matcher.includes("instance="),
+                    )[0];
+                    return (
+                      matcher?.substring(matcher?.indexOf('"') + 1, matcher?.lastIndexOf('"')) ===
+                      website.metric.instance
+                    );
+                  })
+                  .filter((alert) => !alert.name.startsWith("general"))}
                 user={user}
                 scrapFileConfig={scrapFileConfig}
               />
             ))
+            }
+          </div>
         ) : (
           <div>{translations.site("noResult", { search })}</div>
         )

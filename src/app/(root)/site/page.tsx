@@ -24,8 +24,6 @@ export default async function Uptime() {
   const _parsedAccreds = (user.accreds ?? []).map(parseAccred);
 
   return (
-    <div className="container mx-auto px-6 py-12 max-w-6xl">
-      <UptimeTable user={user} />
-    </div>
+    <UptimeTable user={user} />
   );
 }
