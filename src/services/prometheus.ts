@@ -37,7 +37,7 @@ const generateReceiverName = ({ type, website, user }: { type: string; website: 
     .replace(/\/$/, "")
     .replaceAll(".", "-")
     .replaceAll("/", "-"); // regex to remove protocol (https...) and another to remove last "/". replace function to replace all "." or "/" by a "-"
-  const receiver = `${type}-${host}${user && type !== "general" ? ("-" + generateEmailFromUser(user)) : ""}`; // it will loke like : httpdown-google-com-test-arsene-lupin, for (httpdown, https://google.com/test/, <User email=arsene.lupin@epfl.ch>)
+  const receiver = `${type}-${host}${user && type !== "general" ? "-" + generateEmailFromUser(user) : ""}`; // it will loke like : httpdown-google-com-test-arsene-lupin, for (httpdown, https://google.com/test/, <User email=arsene.lupin@epfl.ch>)
   return receiver;
 };
 
@@ -45,13 +45,11 @@ export const addWebsiteToFileConfigContent = async ({
   src,
   content,
   website,
-  type,
   user,
 }: {
   src: string;
   content: Scrape;
   website: string;
-  type: configFiles;
   user: User;
 }) => {
   const websites = content.scrape_configs[0].static_configs[0].targets || [];
@@ -90,13 +88,11 @@ export const removeWebsiteToFileConfigContent = async ({
   src,
   content,
   website,
-  type,
   user,
 }: {
   src: string;
   content: Scrape;
   website: string;
-  type: configFiles;
   user: User;
 }) => {
   let websites = content.scrape_configs[0].static_configs[0].targets;
@@ -337,9 +333,10 @@ export const getHTTPResponse = async (user?: User) => {
       };
     });
 
-    newResult = newResult !== undefined ?
-      newResult.filter((data) => userInstanceArray.includes(data.metric.instance))
-      : response.data.result
+    newResult =
+      newResult !== undefined
+        ? newResult.filter((data) => userInstanceArray.includes(data.metric.instance))
+        : response.data.result;
 
     response.data.result = newResult;
   }
@@ -350,11 +347,20 @@ export const getHTTPResponse = async (user?: User) => {
 const getUserWebsites = async (user?: User) => {
   const alertConfig = await getAlertSubscriberConfig();
 
-  const receiverNames = alertConfig.receivers.filter((receiver) => receiver.name.startsWith("general"))
-    .filter((receiver) => receiver.email_configs[0].to.includes(user?.email as string)).map((receiver) => receiver.name); // get receiver names list of all website added by a specific user.
-  console.log(receiverNames)
+  const receiverNames = alertConfig.receivers
+    .filter((receiver) => receiver.name.startsWith("general"))
+    .filter((receiver) => receiver.email_configs[0].to.includes(user?.email as string))
+    .map((receiver) => receiver.name); // get receiver names list of all website added by a specific user.
+  console.log(receiverNames);
 
-  const instanceList = alertConfig.route.routes.filter((route) => receiverNames.includes(route.receiver as string)).map((route) => route.matchers.filter((matcher) => matcher.includes("instance="))[0].replace("instance=", "").replaceAll('"', ''));
+  const instanceList = alertConfig.route.routes
+    .filter((route) => receiverNames.includes(route.receiver as string))
+    .map((route) =>
+      route.matchers
+        .filter((matcher) => matcher.includes("instance="))[0]
+        .replace("instance=", "")
+        .replaceAll('"', ""),
+    );
   console.log(instanceList);
   return instanceList;
 };

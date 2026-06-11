@@ -1,6 +1,7 @@
 "use client";
 
 import { Bell, BellMinus, BellOff, BellPlus, BellRing, Settings, Trash } from "lucide-react";
+import Link from "next/link";
 import type { User } from "next-auth";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
@@ -33,7 +34,6 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import Link from "next/link";
 
 const chartConfig = {
   views: {
@@ -139,34 +139,35 @@ export default function UptimeBarChart({
 
   const formatWebsiteName = (website: string) => {
     return String(website).charAt(0).toUpperCase() + String(website).slice(1);
-  }
+  };
 
   const getAverageMs = () => {
     const responseTimeArray = chartDataFormat?.map((data) => data.responseTime);
-    const totalMs = responseTimeArray?.reduce(
-      (accumulator, currentValue) => accumulator + currentValue,
-    ) || 0;
+    const totalMs = responseTimeArray?.reduce((accumulator, currentValue) => accumulator + currentValue) || 0;
     const averageMs = responseTimeArray ? totalMs / responseTimeArray?.length : 0;
     return averageMs.toFixed(2);
-  }
+  };
 
   return (
     <Card className="py-0 mb-4 mx-2 min-w-80 max-w-30 w-auto gap-0">
       <CardHeader className="flex flex-col border-b p-0! sm:flex-row min-h-20 items-center mx-6">
         <div className="flex flex-1 flex-col justify-center gap-1 pt-4 pb-3 sm:py-0!">
-          <CardTitle>{!new URL(websiteUrl).hostname.includes("www.epfl.ch") ? formatWebsiteName(new URL(websiteUrl).host.split(".")[0]) : "EPFL"}</CardTitle>
+          <CardTitle>
+            {!new URL(websiteUrl).hostname.includes("www.epfl.ch")
+              ? formatWebsiteName(new URL(websiteUrl).host.split(".")[0])
+              : "EPFL"}
+          </CardTitle>
           {/* <CardDescription>{translations.uptime("description")}</CardDescription> */}
           <CardDescription>
             <Link href={websiteUrl} target="_blank" className="hover:underline">
-              {new URL(websiteUrl).hostname + (new URL(websiteUrl).pathname.length <= 1 ? "" : new URL(websiteUrl).pathname)}
+              {new URL(websiteUrl).hostname +
+                (new URL(websiteUrl).pathname.length <= 1 ? "" : new URL(websiteUrl).pathname)}
             </Link>
           </CardDescription>
         </div>
         <div>
           {parseInt(website.values[website.values.length - 1].httpStatus) === 1 ? (
-            <Badge
-              variant={"outline"}
-              className="text-green-700 border-green-700">
+            <Badge variant={"outline"} className="text-green-700 border-green-700">
               <span className="relative flex size-3">
                 {/* <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-700 opacity-75"></span> */}
                 <span className="relative inline-flex size-3 rounded-full bg-green-700"></span>
@@ -174,9 +175,7 @@ export default function UptimeBarChart({
               {translations.uptime("up")}
             </Badge>
           ) : (
-              <Badge
-              variant={"outline"}
-                className="text-red-700 border-red-700">
+            <Badge variant={"outline"} className="text-red-700 border-red-700">
               <span className="relative flex size-3">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-700 opacity-75"></span>
                 <span className="relative inline-flex size-3 rounded-full bg-red-700"></span>
@@ -210,7 +209,7 @@ export default function UptimeBarChart({
               // content={<ChartTooltipContent className="w-[150px]" nameKey="views" />}
               content={<ChartTooltipContent className="w-[150px]" nameKey="views" />}
               formatter={(_, __, item) => `${(item.payload.responseTime as number).toFixed(2)} ms`}
-              position={{y: 50}}
+              position={{ y: 50 }}
             />
             {/* <Bar dataKey={"display"} fill={`var(--color-responseTime)`} radius={50} maxBarSize={120/30}> */}
             <Bar dataKey={"display"} fill={`var(--color-responseTime)`} radius={50}>

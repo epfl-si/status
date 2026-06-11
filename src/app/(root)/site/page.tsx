@@ -23,7 +23,5 @@ export default async function Uptime() {
 
   const _parsedAccreds = (user.accreds ?? []).map(parseAccred);
 
-  return (
-    <UptimeTable user={user} />
-  );
+  return <UptimeTable user={user} />;
 }

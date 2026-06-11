@@ -72,34 +72,33 @@ export function UptimeTable({ user }: { user: User }) {
               ) && (search.length >= 3 ? website.metric.instance.includes(search) : true),
           )?.length > 0 ? (
           <div className="flex flex-wrap w-full mx-auto">
-            {
-              uptimes?.data?.result
-            .filter(
-              (website) =>
-                scrapFileConfig.content.scrape_configs[0].static_configs[0].targets.includes(website.metric.instance) &&
-                (search.length >= 3 ? website.metric.instance.includes(search) : true),
-            )
-            .map((website) => (
-              <UptimeBarChart
-                key={website.metric.instance}
-                website={website}
-                isAutorized={authorized}
-                alertSubscribers={alertSubscribers
-                  ?.filter((alert) => {
-                    const matcher = alert.targetReceiver?.matchers?.filter((matcher) =>
-                      matcher.includes("instance="),
-                    )[0];
-                    return (
-                      matcher?.substring(matcher?.indexOf('"') + 1, matcher?.lastIndexOf('"')) ===
-                      website.metric.instance
-                    );
-                  })
-                  .filter((alert) => !alert.name.startsWith("general"))}
-                user={user}
-                scrapFileConfig={scrapFileConfig}
-              />
-            ))
-            }
+            {uptimes?.data?.result
+              .filter(
+                (website) =>
+                  scrapFileConfig.content.scrape_configs[0].static_configs[0].targets.includes(
+                    website.metric.instance,
+                  ) && (search.length >= 3 ? website.metric.instance.includes(search) : true),
+              )
+              .map((website) => (
+                <UptimeBarChart
+                  key={website.metric.instance}
+                  website={website}
+                  isAutorized={authorized}
+                  alertSubscribers={alertSubscribers
+                    ?.filter((alert) => {
+                      const matcher = alert.targetReceiver?.matchers?.filter((matcher) =>
+                        matcher.includes("instance="),
+                      )[0];
+                      return (
+                        matcher?.substring(matcher?.indexOf('"') + 1, matcher?.lastIndexOf('"')) ===
+                        website.metric.instance
+                      );
+                    })
+                    .filter((alert) => !alert.name.startsWith("general"))}
+                  user={user}
+                  scrapFileConfig={scrapFileConfig}
+                />
+              ))}
           </div>
         ) : (
           <div>{translations.site("noResult", { search })}</div>
