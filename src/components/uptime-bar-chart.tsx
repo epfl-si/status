@@ -41,7 +41,7 @@ const chartConfig = {
   },
   responseTime: {
     label: "Response Time",
-    color: "var(--chart-2)",
+    color: "#808080",
   },
 } satisfies ChartConfig;
 
@@ -190,7 +190,19 @@ export default function UptimeBarChart({
         <ChartContainer config={chartConfig} className="aspect-auto h-20 w-full">
           <BarChart
             accessibilityLayer
-            data={chartDataFormat}
+            data={chartDataFormat && chartDataFormat?.length >= 30 ? chartDataFormat : chartDataFormat?.concat([...Array(30 - chartDataFormat?.length)].map((_, i) => {
+              const timestamp = chartDataFormat[chartDataFormat.length - 1].timestamp * 1000 + (i + 1) * 60000;
+              const datetime = new Date(timestamp);
+              return (
+                {
+                  timestamp: chartDataFormat[chartDataFormat.length - 1].timestamp * 1000 + (i + 1) * 60000,
+                  time: `${datetime.getHours()}:${datetime.getMinutes()}`,
+                  responseCode: "1404",
+                  responseTime: 0,
+                  display: 100,
+                }
+              )
+            }))}
             margin={{
               left: 12,
               right: 12,
@@ -216,19 +228,9 @@ export default function UptimeBarChart({
               {chartDataFormat?.map((data) => (
                 <Cell
                   key={data.timestamp}
-                  fill={parseInt(data.responseCode) < 200 || parseInt(data.responseCode) >= 400 ? "#C82909" : "#209C07"}
-                  onClick={() => console.log(chartDataFormat?.length)}
+                  fill={parseInt(data.responseCode) === 1404 ? "#808080" : parseInt(data.responseCode) < 200 || parseInt(data.responseCode) >= 400 ? "#C82909" : "#209C07"}
                 />
               ))}
-              {/* {
-                chartDataFormat && chartDataFormat?.length < 30 && (
-                [...Array(30 - chartDataFormat?.length)].map((_, i) => i + 1).map((skeleton) => (
-                  <Cell
-                  key={skeleton}
-                  fill={"#808080"}
-                  />
-                )))
-              } */}
             </Bar>
           </BarChart>
         </ChartContainer>
